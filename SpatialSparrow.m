@@ -80,7 +80,7 @@ for iTrials = 1 : maxTrials
         
         RawEvents = RunStateMachine; % run state matrix
         
-        % set the frame number just after starting
+        % upate labcams counter
         if exist('udplabcams','var')
             fwrite(udplabcams,sprintf('log=trial_end:%d',iTrials));
         end

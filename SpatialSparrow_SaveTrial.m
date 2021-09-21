@@ -52,8 +52,16 @@ if length(fieldnames(RawEvents)) > 1
     BpodSystem.Data.optoType(iTrials) = optoType; %%time of optogenetic stimulus (1 = Stimulus, 2 = Delay')
     BpodSystem.Data.optoDur(iTrials) = optoDur; %%duration of optogenetic stimulus (s)
 
+    % get wheel data
+    if ~isempty(R)
+        BpodSystem.Data.wheelPos = R.getLoggedData;
+    else
+        BpodSystem.Data.wheelPos = [];
+    end
+    
+    %punishment pause
     if BpodSystem.Data.Punished(iTrials)
-        pause(S.TimeOut); %punishment pause
+        pause(S.TimeOut);
     end
 
     % collect performance in OutcomeRecord variable (used for performance plot)

@@ -1,6 +1,5 @@
 % SpatialSparrow_StimulusInit
 W.SamplingRate = BpodSystem.ProtocolSettings.sRate; %adjust sampling rate
-sRate = BpodSystem.ProtocolSettings.sRate;
 
 %% Assign stimuli and create output variables
 % Determine stimulus presentation
@@ -14,19 +13,18 @@ else
 end
 
 if TrialType == 2 % present distractor stimulus
-    DistStim = Sample(S.DistFractions); % ASSIGN A DISTRACTOR
+    DistStim = Sample(S.DistFractions);
     if DistStim < 0 || DistStim > 1
-        warning(['Current DistFraction = ' num2str(DistStim) '; Set to 0 instead.']);
+        warning(['DistFraction = ' num2str(DistStim) ' is invalid; Set to 0 instead.']);
         DistStim = 0;
     end
-    DistStim = floor(DistStim * TargStim); %convert distractor fraction to rate
 else
     DistStim = 0;
 end
 
-StimRates = repmat([TargStim;DistStim],1,3);
+stimRates = repmat([TargStim;DistStim],1,3);
 if TrialSidesList(iTrials) == 1
-    StimRates = flipud(StimRates); %first row is left target, second row is right target
+    stimRates = flipud(stimRates); %first row is left target, second row is right target
 end
 
 % add decision gap if required
@@ -150,51 +148,49 @@ if StimType ~= S.TestModality && ismember(S.TestModality, 1:6) %if TestModality 
     DistStim = 0;
 end
 
-UseChannels = zeros(2,3); %1st column auditory, 2nd column visual, 3rd column somatosensory; 1st row left, 2nd row right
+useChannels = zeros(2,3); %1st column auditory, 2nd column visual, 3rd column somatosensory; 1st row left, 2nd row right
 % audio
 if ismember(StimType,[2 3 6 7]) %if auditory stimulation is required
     if TrialSidesList(iTrials) == 0
-        UseChannels(1) = 1; %use left channel
+        useChannels(1) = 1; %use left channel
     else
-        UseChannels(2) = 1; %use right channel
+        useChannels(2) = 1; %use right channel
     end
     if S.useDistAudio
         if DistStim > 0
-            UseChannels(:,1) = [1,1]; %use both channels
+            useChannels(:,1) = [1,1]; %use both channels
         end
     end
 end
 % vision
 if ismember(StimType,[1 3 5 7]) %if visual stimulation is required
     if TrialSidesList(iTrials) == 0
-        UseChannels(3) = 1; %use left channel
+        useChannels(3) = 1; %use left channel
     else
-        UseChannels(4) = 1; %use right channel
+        useChannels(4) = 1; %use right channel
     end
     if S.useDistVisual
         if DistStim > 0
-            UseChannels(:,2) = [1,1]; %use both channels
+            useChannels(:,2) = [1,1]; %use both channels
         end
     end
 end
 % somatosensory
 if ismember(StimType,4:7) %if somatosensory stimulation is required
     if TrialSidesList(iTrials) == 0
-        UseChannels(5) = 1; %use left channel
+        useChannels(5) = 1; %use left channel
     else
-        UseChannels(6) = 1; %use right channel
+        useChannels(6) = 1; %use right channel
     end
     if S.useDistPiezo
         if DistStim > 0
-            UseChannels(:,3) = [1,1]; %use both channels
+            useChannels(:,3) = [1,1]; %use both channels
         end
     end
 end
-StimIntensities = [S.StimLoudness S.StimBrightness S.BuzzStrength; S.StimLoudness S.StimBrightness S.BuzzStrength];
 
 % only use selected channels
-StimRates(~UseChannels) = 0;
-StimIntensities(~UseChannels) = 0;
+stimRates(~useChannels) = 0;
 
 %% Compute variable stimulus duration if varStimDur is > 0;
 if strcmpi(class(S.varStimDur), 'double') && S.varStimDur >= 0
@@ -218,5 +214,5 @@ if ~strcmpi(class(cStimOn),'double')
 end
 
 %% create analog waveforms
-[Signal,stimEvents] = SpatialSparrow_GetStimSequence(StimRates, StimIntensities, sRate, stimDur, cStimOn, S); %produce stim sequences and event log
+[Signal,stimEvents] = PuffyPengiun_BinnedStimSequence(stimRates, useChannels, stimDur, S); %produce stim sequences and event log
 BpodSystem.GUIData.Stimuli = Signal;

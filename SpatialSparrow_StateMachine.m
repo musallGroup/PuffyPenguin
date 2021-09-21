@@ -1,21 +1,31 @@
 %SpatialSparrow_StateMachine
 
+
+%% actions in first state
+startActions = {'BNCState',1}; %give trigger on BNC 1 for other hardware
+if S.TrialStartCue
+    startActions = [startActions,'WavePlayer1',['P' 8]]; % this will play the trial start cue
+end
+if ~isempty(R)
+    startActions = [startActions,'RotaryEncoder1','L']; % this will start logging the wheel position
+end
+
+%% actions in last state
+endActions = {'WavePlayer1', 'X', 'TouchShaker1', 105};  %make sure all stimuli are off and move handles out
+if ~isempty(R)
+    endActions = [endActions,'RotaryEncoder1','F']; % this will finish logging the wheel position
+end
+
 %% Build state matrix
 sma = NewStateMatrix();
-
-trialstart_stateout = {'BNCState',1};
-
-if S.TrialStartCue
-    trialstart_stateout = [trialstart_stateout,'WavePlayer1',['P' 8]]; % this will play the trial start cue
-end
 
 sma = AddState(sma, 'Name', 'TrialStart', ... %trigger to signal trialstart to attached hardware. Only works when using 'WaitForCam'.
     'Timer', 0.1, ...
     'StateChangeConditions', {'Tup','PreStimulus'},... %wait for imager before producing barcode sequence
-    'OutputActions', trialstart_stateout); % BNC 1 is high, all others are low, sends message to scan image
+    'OutputActions', startActions); % BNC 1 is high, all others are low, sends message to scan image
 
 sma = AddState(sma, 'Name', 'PreStimulus', ... %wait before starting the stimulus
-    'Timer', S.preStimDelay, ...
+    'Timer', S.preStimDelay + cStimOn, ... %add variable stimulus onset time if > 0
     'StateChangeConditions', {'Tup','PlayStimulus'},...
     'OutputActions', {});
 
@@ -84,7 +94,7 @@ sma = AddState(sma, 'Name', 'DidNotChoose', ... %if animal did not respond move 
 sma = AddState(sma, 'Name', 'TrialEnd', ... %move to next trials after a randomly varying waiting period.
     'Timer', 0, ...
     'StateChangeConditions', {'Tup', 'exit', 'TouchShaker1_14','exit'}, ...
-    'OutputActions', {'WavePlayer1', 'X', 'TouchShaker1', 105});  %make sure all stimuli are off and move handles out
+    'OutputActions', endActions);  %make sure all stimuli are off and move handles out
 
 
 %% send state machine to bpod

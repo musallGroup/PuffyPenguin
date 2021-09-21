@@ -147,13 +147,14 @@ catch
     for i = 1 : length(Ports)
         try
             R = RotaryEncoderModule(Ports{i});
-            R.rotaryEncoderPort = Ports{i};
+            S.rotaryEncoderPort = Ports{i};
             break
         end
     end
 end
 
 if isempty(R)
+    S.rotaryEncoderPort = [];
     warning('!!! No rotary encoder module found. Wheel data will not be available in SessionData !!!');
 end
 
