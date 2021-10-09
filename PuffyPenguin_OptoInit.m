@@ -1,4 +1,4 @@
-%SpatialSparrow_OptoInit
+%PuffyPenguin_OptoInit
 
 %% check if optogenetic stimulus should be presented
 optoDur = 0; %duration of optogenetic stimulus
@@ -9,34 +9,30 @@ optoType = NaN; % time of optogenetic stimulus
 
 if rand < S.optoProb
     % determine time of opto stimulus
-    if strcmpi(S.optoTimes,'Stimulus')
+    if strcmpi(S.optoPeriod,'Stimulus')
         optoType = 1;
-    elseif strcmpi(S.optoTimes,'Delay')
+    elseif strcmpi(S.optoPeriod,'Delay')
         optoType = 2;
-    elseif strcmpi(S.optoTimes,'Stimulus/Delay')
+    elseif strcmpi(S.optoPeriod,'Stimulus/Delay')
         if rand > 0.5
             optoType = 1;
         else
             optoType = 2;
         end
-    elseif strcmpi(S.optoTimes,'Response')
+    elseif strcmpi(S.optoPeriod,'Response')
         optoType = 3;
-    elseif strcmpi(S.optoTimes,'LateStimulus')
+    elseif strcmpi(S.optoPeriod,'LateStimulus')
         optoType = 4;
-    elseif strcmpi(S.optoTimes,'Handle')
-        optoType = 5;
-    elseif strcmpi(S.optoTimes,'AllTimes')
+    elseif strcmpi(S.optoPeriod,'AllTimes')
         coin = rand;
-        if coin < 0.2
+        if coin < 0.25
             optoType = 1;
-        elseif coin >= 0.2 && coin < 0.4
+        elseif coin >= 0.25 && coin < 0.5
             optoType = 2;
-        elseif coin >= 0.4 && coin < 0.6
+        elseif coin >= 0.5 && coin < 0.75
             optoType = 3;
-        elseif coin >= 0.6 && coin < 0.8
+        elseif coin >= 0.75
             optoType = 4;
-        elseif coin >= 0.8
-            optoType = 5;
         end
     end
 
@@ -57,32 +53,25 @@ if rand < S.optoProb
         optoDur = cDecisionGap;
     elseif isinf(S.optoDur) && optoType == 3
         optoDur = 1; % shouldnt inactivate for more than 1s if time is set to infinity
-    elseif isinf(S.optoDur) && optoType == 5
-        optoDur = S.varStimOn(1); % shouldnt be longer as minimum time before stimulus onset.
     else
         optoDur = S.optoDur;
     end
 
     % create opto stim sequence
-    pulse = ones(1, round(optoDur * sRate));
-    pulse(end-round(S.optoRamp * sRate)+1:end) = 1-1/round(S.optoRamp * sRate) : -1/round(S.optoRamp * sRate) : 0;
+    pulse = ones(1, round(optoDur * sRate)) .* S.optoAmp;
+    pulse(end-round(S.optoRamp * sRate)+1:end) = (1-1/round(S.optoRamp * sRate) : -1/round(S.optoRamp * sRate) : 0) .* S.optoAmp;
     pulse(end) = 0; %make sure this goes back to 0
 
     Signal(7:8,:) = zeros(2,size(Signal,2)); % make sure these channels are empty
     stimDur = size(Signal,2) / sRate; %adjust stimulus duration based on analog signal
     if optoType == 1 %find stimulus onset (stimulus period)
-        optoStart = ceil(cStimOn*sRate);
+        optoStart = 1;
     elseif optoType == 2 %find stimulus offset (delay period)
         optoStart = size(Signal,2)+1;
     elseif optoType == 3 %find stimulus offset and add delay time (response period)
         optoStart = size(Signal,2) + round(cDecisionGap*sRate);
     elseif optoType == 4 %find stimulus offset and subtract optogenetic stimulation time (late stimulus period)
         optoStart = size(Signal,2) - length(pulse);
-    elseif optoType == 5 %start with signal presentation. This should occur during the varStimOn time (Handle period).
-        optoStart = 1;
-        if S.varStimOn(1) == 0
-            warning(['!!! varStimOn(1) = 0. Handle inactivation might affect stimulus period. OptoDur = ' num2str(optoDur) '!!!']);
-        end
     else
         optoSide = NaN;
         warning('Unknown optoType. No opto stimulus created !!!');
@@ -98,3 +87,6 @@ if rand < S.optoProb
         Signal(7:8, optoStart : optoStart + length(pulse) - 1) = repmat(pulse,2,1); %stimulate both HS
     end
 end
+
+% send signal matrix to GUI
+BpodSystem.GUIData.Stimuli = Signal;

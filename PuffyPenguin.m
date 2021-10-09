@@ -1,12 +1,14 @@
-function SpatialSparrow
+function PuffyPenguin
 global BpodSystem
 
-SpatialSparrow_Settings; %script to define default settings if they are not defined by settings file
-SpatialSparrow_Init; %initialize hardware and establish labcams communication
+PuffyPenguin_Settings; %script to define default settings if they are not defined by settings file
+PuffyPenguin_Init; %initialize hardware and establish labcams communication
 
 %% wait for start signal from GUI
-BpodSystem.Status.SpatialSparrowPause = true;
-while BpodSystem.Status.SpatialSparrowPause
+figure(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure); %bring to foreground
+BpodSystem.GUIHandles.PuffyPenguin.PauseSwitch.Value = 'pause'; drawnow;
+BpodSystem.Status.PuffyPenguinPause = true;
+while BpodSystem.Status.PuffyPenguinPause
     drawnow; pause(0.03);
 end
     
@@ -22,34 +24,35 @@ if exist('udplabcams','var')
 end
 
 %% Main loop for single trials
-BpodSystem.Status.SpatialSparrowExit = false;
+BpodSystem.Status.PuffyPenguinExit = false;
 for iTrials = 1 : maxTrials
     
     % check the pause button
-    if BpodSystem.Status.SpatialSparrowPause
+    if BpodSystem.Status.PuffyPenguinPause
         disp('Spatial Sparrow paused')
-        while BpodSystem.Status.SpatialSparrowPause 
+        while BpodSystem.Status.PuffyPenguinPause 
             drawnow; pause(0.03); 
-            if ~BpodSystem.Status.BeingUsed || BpodSystem.Status.SpatialSparrowExit
+            if ~BpodSystem.Status.BeingUsed || BpodSystem.Status.PuffyPenguinExit
                 break
             end
         end
     end
     
+    %update trial counter
+    BpodSystem.Data.cTrial = iTrials;
+    
     % only run this code if protocol is still active
-    if BpodSystem.Status.BeingUsed && ~BpodSystem.Status.SpatialSparrowExit
+    if BpodSystem.Status.BeingUsed && ~BpodSystem.Status.PuffyPenguinExit
         
         tic % single trial timer
         
-        SpatialSparrow_TrialInit %check basic variables (timing etc for current stimulus)
-        SpatialSparrow_StimulusInit %set up simuli for different modalities/sides etc and generate analog waveforms - CHANGE THIS
-        SpatialSparrow_OptoInit %set up optogenetic stimuli for left/right and at what point in the trial - CHANGE THIS
-        SpatialSparrow_AutoReward %check if single spouts should be given, based on trainingsstatus
-        
-        Signal = Signal([1:2,7:8],:);
-        SpatialSparrow_BpodTrialInit %prepare variables for state machine - CHANGE THIS
-        SpatialSparrow_DisplayTrialData %show current trial stuff on GUI
-        
+        %% run main scripts to prepare current trial
+        PuffyPenguin_TrialInit %check basic variables (timing etc for current stimulus)
+        PuffyPenguin_StimulusInit %set up simuli for different modalities/sides etc and generate analog waveforms
+        PuffyPenguin_OptoInit %set up optogenetic stimuli for left/right and at what point in the trial
+        PuffyPenguin_AutoReward %check if single spouts should be given, based on trainingsstatus
+        PuffyPenguin_BpodTrialInit %prepare variables for state machine
+        PuffyPenguin_DisplayTrialData %show current trial stuff on GUI
         
         %% create ITI jitter
         trialPrep = toc; %check how much time was used to prepare trial and subtract from ITI
@@ -61,6 +64,7 @@ for iTrials = 1 : maxTrials
         BpodSystem.SerialPort.read(BpodSystem.SerialPort.bytesAvailable, 'uint8'); %remove all bytes from serial port
         setMotorPositions;
         
+        %% check for weird bytes. This maybe happens if the touchshaker sends a lot of false lick bytes? Broken cable?
         BpodSystem.Data.weirdBytes = false;
         while BpodSystem.SerialPort.bytesAvailable > 0 %clear excess bytes from bpod that aquired from ITI
             disp('!!! Something really weird is going on with the serial communication to Bpod !!!');
@@ -71,7 +75,7 @@ for iTrials = 1 : maxTrials
         end
 
         %% run bpod and save data after trial is finished
-        SpatialSparrow_StateMachine; %produce state machine and upload to bpod - Change THIS
+        PuffyPenguin_StateMachine; %produce state machine and upload to bpod
         
         % set the frame number just before starting
         if exist('udplabcams','var')
@@ -80,15 +84,15 @@ for iTrials = 1 : maxTrials
         
         RawEvents = RunStateMachine; % run state matrix
         
-        % upate labcams counter
+        % update labcams counter
         if exist('udplabcams','var')
             fwrite(udplabcams,sprintf('log=trial_end:%d',iTrials));
         end
 
-        SpatialSparrow_SaveTrial
+        PuffyPenguin_SaveTrial; %save data from current trial and settings if requested
         
         try
-            BpodSystem.GUIHandles.spatialSparrow.update_performance_plots();
+            BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots();
         catch
             disp('Could not update performance plots.')
         end
@@ -97,11 +101,11 @@ for iTrials = 1 : maxTrials
         
         teensyWrite([71 1 '0' 1 '0']); % move spouts to zero;
         HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
-        if BpodSystem.Status.SpatialSparrowExit
+        if BpodSystem.Status.PuffyPenguinExit
             RunProtocol('Stop')
         end
     else  %stop code if stop button is pressed and close figures
-        SpatialSparrow_CloseSession
+        PuffyPenguin_CloseSession
         break;
     end
 end

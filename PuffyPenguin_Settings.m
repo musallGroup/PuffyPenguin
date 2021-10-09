@@ -1,6 +1,6 @@
 % Define or load default settings for protocol
 % General settings.
-DefaultSettings.paradigmName = 'SpatialSparrow';
+DefaultSettings.paradigmName = 'PuffyPenguin';
 DefaultSettings.SubjectName = 'Dummy';
 DefaultSettings.RewardedModality = 'AudioVisual'; % modality that is rewarded - 'Vision' for flashes, 'Audio' for beeps, 'AudioVisual' for multisensory
 DefaultSettings.leftRewardVolume = 2;  % ul
@@ -16,14 +16,16 @@ DefaultSettings.PerformanceSwitch = 'Performed'; % Switch to show performance ov
 DefaultSettings.modSelect = 'Combined'; % selector which part of the data show in the performance curve window
 DefaultSettings.StartTime = '1'; %start time of current session.
 DefaultSettings.cTrial = 1; %Nr of current trial.
-DefaultSettings.RegularStim = false; %produce regular stimulus sequence
 DefaultSettings.biasSeqLength = 3; %nr of trials on one side after which the other side is switched with 50% probability
 
 DefaultSettings.widefieldPath = '\\naskampa\LTS2\BpodWidefield\'; %path to widefield data on server
 DefaultSettings.serverPath = '\\naskampa\DATA\BpodBehavior\'; %path to behavioral data on server
 DefaultSettings.labcamsAddress = '127.0.0.1:9999';
+DefaultSettings.visualAddress = '127.0.0.1:5005';
 DefaultSettings.wavePort = 'COM18'; %com port for analog output module
 DefaultSettings.analogInPort = 'COM4'; %com port for analog input module
+DefaultSettings.rotaryEncoderPort = 'COM10'; %com port for rotary encoder module
+DefaultSettings.ambientPort = 'COM11'; %com port for ambient module
 
 DefaultSettings.TrainingMode = false; %flag if training is being used
 DefaultSettings.labcamsWidefield = '';%'peanutbread.cshl.edu:9998'
@@ -49,7 +51,7 @@ DefaultSettings.WaitingTime = 1; % (s) minimum waiting time before a response ca
 DefaultSettings.TimeToChoose = 3; % (s) wait for a decision
 DefaultSettings.TimeToConfirm = 0.5; % (s) wait for a decision
 DefaultSettings.TimeOut = 3; % (s) timeout punish for false response
-DefaultSettings.StimDuration = 1; % (s) Duration of a stimulus sequence
+DefaultSettings.StimDuration = 3; % (s) Duration of a stimulus sequence
 DefaultSettings.runTime = 0; % (h) Duration of the current session
 DefaultSettings.varStimDur = 0; % (s) Variable duration of the stimulus sequence. Stim will be StimDuration + (0 to varStimDur)
 DefaultSettings.optoDur = 0.5; % (s) Duration of the optogenetic stimulus.
@@ -59,30 +61,32 @@ DefaultSettings.TrialStartCue = 1;
 DefaultSettings.UseStimStartCue = 1;
 
 %Stimulus settings
-DefaultSettings.BeepDuration = 20; % Beep duration in ms.
+DefaultSettings.BeepDuration = 3; % Beep duration in ms.
 DefaultSettings.FlashDuration = 20; % Flash duration in ms.
-DefaultSettings.BuzzDuration = 20; % Buzz duration in ms.
+DefaultSettings.BuzzDuration = 10; % Buzz duration in ms.
 DefaultSettings.varStimOn = [0 0.125 0.25]; % Variable onset time for stimulus after lever grab in s. This can be a vector of values. Have to be 0 and higher.
 DefaultSettings.StimBrightness = 20; %Brightness of flashes. Multiplier of base frequency (default is 100Hz).
 DefaultSettings.StimLoudness = 0.5; %Loudness of tones
 DefaultSettings.BuzzStrength = 1; %Strength of buzzes
 DefaultSettings.WaitForCam = false; % Any positive value will make each trial wait for a trigger signal from the camera. After CamWait seconds without trigger, protocol will continue.
-DefaultSettings.TargRate = 20; % Rate of target sequence. Can be either a single scalar or a vector.
-DefaultSettings.DistFractions = 0; % Nr of distractor pulses is a fraction of target pulses. Can be either a single number between 0-1 or a vector.
+DefaultSettings.StimRate = 2; % Rate of target sequence. Can be either a single scalar or a vector.
+DefaultSettings.TargFractions = 0.7; % Probability of showing a stimulus in a given bin of the target sequence. Should be a single number between 0-1
+DefaultSettings.DistFractions = 0.3; % Probability of showing a stimulus in a given bin of a distractor sequence. Should be a single number between 0-1
 DefaultSettings.DistProb = 0; % Probability of a presenting a distractor trial. Only has an effect if DistFractions > 0.
 DefaultSettings.useDistAudio = true;
 DefaultSettings.useDistVisual = true;
 DefaultSettings.useDistTactile = true;
-DefaultSettings.BinSize = 50; % Refractory period after stimulus presentation after which no stimulus can be presented (value in ms).
-DefaultSettings.StimCoherence = 1; % Flag to determine if multisensory stimuli on the same side should be correlated (1) or not (0).
-DefaultSettings.UseNoise = false; % Probability to produce a noise burst as auditory stimulus (1). Otherwise a convolved click is produced (0).
+DefaultSettings.BinPos = 0; % Start of auditory/tactile stimuli within a given bin (in seconds).
+DefaultSettings.StimCoherence = 1; % Flag to determine if multisensory stimuli on the same side should be correlated (1) or not (0). Only used for non-regular stim sequences.
+DefaultSettings.UseNoise = 0; % Amplitude (V) of auditory white-noise that is played in addition to other stimuli. Can be used to change auditory SNR.
 DefaultSettings.ProbAudio = 0; % Probability of presenting an audio only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.ProbVision = 0; % Probability of presenting an vision only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.ProbTactile = 0; % Probability of presenting a somatosensory only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.DecisionGap = [0.3 1.5]; % Range of a gap between stimulus and decision period in s.
 DefaultSettings.TestModality = 0; % Define a modality to be used with discrimination (1=vis,2=aud,4=ss), inactive if set to 0. All others will be detection only.
-DefaultSettings.optoProb = 0; % Probability to present an optogenetic stimulus. Ranges from 0 (no optogenetics) to 1 (all trials).
-DefaultSettings.optoTimes = 'Stimulus/Delay'; % Part of the trial where optogenetic stimulus should be presented.
+DefaultSettings.optoProb = 1; % Probability to present an optogenetic stimulus. Ranges from 0 (no optogenetics) to 1 (all trials).
+DefaultSettings.optoAmp = 2; % Magnitude of optogenetic stimulus (V).
+DefaultSettings.optoPeriod = 'Stimulus/Delay'; % Part of the trial where optogenetic stimulus should be presented.
 DefaultSettings.optoRight = 0.5; %Probability for occurence of an optogenetic stimulus on the right.
 DefaultSettings.optoBoth = 1; %Probability for occurence of an optogenetic stimulus on both sides. This comes after determining a single HS target.
 DefaultSettings.optoPower = 5; %Power of optogenetic light on the brain surface. This is just an indicator.

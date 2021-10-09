@@ -179,7 +179,7 @@ unsigned long spoutClocker_R = millis(); // timer to measure duration of right l
 
 // Touch variables
 int touchAdjustDur = 2000; // time used to re-adjust touch levels if neccessary. This will infer the mean (in the first hald) and standard deviation (in the second half) of the read-noise to infer decent thresholds for touch.
-int touchThresh = 10; // threshold for touch event in standard deviation units.
+int touchThresh = 3; // threshold for touch event in standard deviation units.
 int touchThreshOffset = 50; // additional offset for touch threshold.
 bool touchAdjust = true; // flag to determine values to detect touches. Do this on startup.
 float touchData[4]; // current values for the four touch lines (left spout, right spout, left, handle, right handle)
@@ -267,7 +267,7 @@ void serialEvent1() {
   FSMheader = Serial1COM.readByte();
   switch (FSMheader) {
     case HWRESET:
-//    _reboot_Teensyduino_();
+    _reboot_Teensyduino_();
       break;
     case MODULE_INFO: // return module information to bpod
         returnModuleInfo();
@@ -608,7 +608,7 @@ void loop() {
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   // check touch lines and create according output
- // if (!touchAdjust & !spoutMoves & !leverMoves) {
+  if (!touchAdjust & !spoutMoves & !leverMoves) {
     if (touchData[0] > (meanTouchVals[0] + (stdTouchVals[0]*touchThresh))) { // signal above 'stdTouchVals' standard deviations indicate lick event. only when spouts dont move.
       spoutClocker_L = millis(); //update time when spout was last touched
       if (!spoutTouch_L) {
@@ -686,7 +686,7 @@ void loop() {
         leverTouch_BOTH = false;
       }
     }
-  //}
+  }
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Check for ongoing spout movements

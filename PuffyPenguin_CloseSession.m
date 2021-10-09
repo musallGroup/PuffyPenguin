@@ -1,4 +1,4 @@
-%SpatialSparrow_CloseSession
+%PuffyPenguin_CloseSession
 
 if S.SaveSettings %if current settings should be saved to file
     S.SaveSettings = false; %set variable back to false before saving
@@ -7,6 +7,11 @@ end
 
 % Move spouts to reset position.
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
+
+% close visual stim server
+if ~isempty(BpodSystem.PluginObjects.udpVisual)
+    fwrite(BpodSystem.PluginObjects.udpVisual, 'Close')
+end
 
 % stop video
 try
@@ -29,8 +34,8 @@ end
 % check for path to server and save behavior + graph
 if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') %if server responds
     try
-        set(BpodSystem.GUIHandles.spatialSparrow.StopButton,'Text','Copying data')
-        set(BpodSystem.GUIHandles.spatialSparrow.StopButton,'FontColor',[100,255,100])
+        set(BpodSystem.GUIHandles.PuffyPenguin.StopButton,'Text','Copying data')
+        set(BpodSystem.GUIHandles.PuffyPenguin.StopButton,'FontColor',[100,255,100])
         drawnow;
     end
     if ~BpodSystem.ProtocolSettings.serverPath(end) == filesep
@@ -78,8 +83,9 @@ if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') %if server responds
     end
 end
 try
-    set(BpodSystem.GUIHandles.spatialsparrow.StopButton,'Text','Start')
-    set(BpodSystem.GUIHandles.spatialsparrow.StopButton,'FontColor',[0,0,0])
+    set(BpodSystem.GUIHandles.PuffyPenguin.StopButton,'Text','Start')
+    set(BpodSystem.GUIHandles.PuffyPenguin.StopButton,'FontColor',[0,0,0])
     drawnow;
 end
+
 

@@ -1,4 +1,4 @@
-%SpatialSparrow_TrialInit
+%PuffyPenguin_TrialInit
 
 BpodSystem.ProtocolSettings.cTrial = iTrials; %log current trial ID in bpod object
 BpodSystem.Data.cTrial = iTrials; %log current trial ID in bpod object
@@ -25,8 +25,8 @@ if iTrials == 1 || PrevStimLoudness ~= S.StimLoudness
 end
 
 %% update valve times
-LeftValveTime = GetValveTimes(S.leftRewardVolume, LeftPortValveState);
-RightValveTime = GetValveTimes(S.rightRewardVolume, RightPortValveState);
+LeftValveTime = GetValveTimes(S.leftRewardVolume, 1);
+RightValveTime = GetValveTimes(S.rightRewardVolume, 3);
 
 % if stimulus probability has changed, compute a new sidelist and re-initate outcome plot
 if PrevProbRight ~= S.ProbRight

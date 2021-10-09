@@ -1,4 +1,4 @@
-%SpatialSparrow_AutoReward
+%PuffyPenguin_AutoReward
 %% Check training status and set up if auto-reward should be given
 GiveReward = false; SingleSpout = false; %make sure trials are not aided by mistake
 if S.TrainingMode == 1

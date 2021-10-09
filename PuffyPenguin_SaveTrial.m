@@ -1,4 +1,4 @@
-%SpatialSparrow_SaveTrial
+%PuffyPenguin_SaveTrial
 % Save events and data
 
 if length(fieldnames(RawEvents)) > 1
@@ -31,15 +31,11 @@ if length(fieldnames(RawEvents)) > 1
         BpodSystem.Data.Rewarded(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.Reward(1)); %Correct choice
     end
     
-    BpodSystem.Data.TargStim(iTrials) = TargStim; %Pulsecount for target side
-    BpodSystem.Data.DistStim(iTrials) = DistStim; %Pulsecount for distractor side
+    BpodSystem.Data.stimRate(iTrials) = S.StimRate; %Stimulus rate in Hz
+    BpodSystem.Data.targFrac(iTrials) = S.TargFractions(1); %fraction of used bins on target side
+    BpodSystem.Data.distFrac(iTrials) = distFrac; %fraction of used bins on distractor side
     BpodSystem.Data.ITIjitter(iTrials) = ITIjitter; %duration of jitter between trials
     BpodSystem.Data.CorrectSide(iTrials) = correctSide; % 1 means left, 2 means right side
-    if correctSide == 1
-        BpodSystem.Data.StimSideValues([1,2],iTrials) =  [TargStim, DistStim];
-    else
-        BpodSystem.Data.StimSideValues([1,2],iTrials) =  [DistStim, TargStim];
-    end
     BpodSystem.Data.StimType(iTrials) = StimType; % 1 means vision is rewarded, 2 means audio is rewarded
     BpodSystem.Data.stimEvents{iTrials} = stimEvents; % timestamps for individual events on each channel. Order is AL,AR,VL,VR, timestamps are in s, relative to stimulus onset (use stimOn to be more precise).
     BpodSystem.Data.TrialSettings(iTrials) = S; % Adds the settings used for the current trial to the Data struct (to be saved after the trial ends)
@@ -52,16 +48,28 @@ if length(fieldnames(RawEvents)) > 1
     BpodSystem.Data.optoType(iTrials) = optoType; %%time of optogenetic stimulus (1 = Stimulus, 2 = Delay')
     BpodSystem.Data.optoDur(iTrials) = optoDur; %%duration of optogenetic stimulus (s)
 
-    % get wheel data
-    if ~isempty(R)
-        BpodSystem.Data.wheelPos = R.getLoggedData;
+    if correctSide == 1
+        BpodSystem.Data.StimSideValues([1,2],iTrials) =  [max(cellfun(@length, stimEvents(1:2:6))), max(cellfun(@length, stimEvents(2:2:6)))];
     else
-        BpodSystem.Data.wheelPos = [];
+        BpodSystem.Data.StimSideValues([2,1],iTrials) =  [max(cellfun(@length, stimEvents(1:2:6))), max(cellfun(@length, stimEvents(2:2:6)))];
     end
     
-    %punishment pause
+    % get ambient data if present
+    if ~isempty(S.ambientPort)
+        vals = AB.getMeasurements;
+        cFields = fieldnames(vals);
+        for iFields = 1 : length(cFields)
+            BpodSystem.Data.(cFields{iFields})(iTrials) = vals.(cFields{iFields});
+        end
+    end
+    
+    % get wheel data if present
+    if ~isempty(S.rotaryEncoderPort)
+        BpodSystem.Data.wheelPos(iTrials) = R.getLoggedData(); % get position data from rotary encoder module
+    end
+    
     if BpodSystem.Data.Punished(iTrials)
-        pause(S.TimeOut);
+        pause(S.TimeOut); %punishment pause
     end
 
     % collect performance in OutcomeRecord variable (used for performance plot)

@@ -2,9 +2,8 @@
 % BPod Init
 BpodSystem.ProtocolSettings.triggerScanbox = false;
 BpodSystem.Data.byteLoss = 0; %counter for cases when the teensy didn't send a response byte
-
-LeftPortValveState = 1;%2^0;
-RightPortValveState = 3;%2^1; % ports are numbered 0-7. Need to convert to 8bit values for bpod
+BpodSystem.SoftCodeHandlerFunction = 'PuffyPenguin_softCodeHandler';
+BpodSystem.Data.Rewarded = logical([]); %needed for GUI to work in first trial
 
 %% Load default settings and update with pre-defined settings if required
 defaultFieldParamVals = struct2cell(DefaultSettings);
@@ -25,13 +24,14 @@ end
 BpodSystem.ProtocolSettings = S; % Adds the currently used settings to the Bpod struct
 BpodSystem.ProtocolSettings.SubjectName = BpodSystem.GUIData.SubjectName; %update subject name
 serverPath = [BpodSystem.ProtocolSettings.serverPath filesep BpodSystem.ProtocolSettings.SubjectName filesep ...
-    BpodSystem.GUIData.ProtocolName ]; %path to data server
+    BpodSystem.GUIData.ProtocolName]; %path to data server
 
 
 %% ensure analog output module is present and set up communication
 clear W
 try
     W = BpodWavePlayer(S.wavePort); %check if analog module com port is correct
+    fprintf('Analog output module found on port %s\n.', S.wavePort)
 catch
     % check for analog module by finding a serial device that can create a waveplayer object
     W = [];
@@ -41,6 +41,7 @@ catch
         try
             W = BpodWavePlayer(Ports{i});
             S.wavePort = Ports{i};
+            fprintf('Analog output module found on port %s\n.', Ports{i})
             break
         end
     end
@@ -107,7 +108,7 @@ if isempty(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
     BpodSystem.ProtocolSettings.capacitiveTouchThresholds = res;
     
 else
-    disp('Using thresholds from the last run.')
+    disp('Using lick thresholds from the last run.')
     teensySetTouchThresh(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
     ls = num2str(BpodSystem.ProtocolSettings.lInnerLim);
     rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
@@ -122,6 +123,7 @@ catch
     % check for analog module by finding a serial device that can create a waveplayer object
     A = [];
     Ports = FindSerialPorts; % get available serial com ports
+    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
     for i = 1 : length(Ports)
         try
             A = BpodAnalogIn(Ports{i});
@@ -136,18 +138,23 @@ if isempty(A)
     BpodSystem.Status.BeingUsed = 0;
 end
 
+
 %% check for rotary encoder module
 clear R
 try
     R = RotaryEncoderModule(S.rotaryEncoderPort); %check if rotary encoder module com port is correct
+    fprintf('Rotary encoder module found on port %s\n.', S.rotaryEncoderPort)
 catch
     % check for analog module by finding a serial device that can create a waveplayer object
-    R = [];
+    clear R
     Ports = FindSerialPorts; % get available serial com ports
+    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
+    Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
     for i = 1 : length(Ports)
         try
             R = RotaryEncoderModule(Ports{i});
             S.rotaryEncoderPort = Ports{i};
+            fprintf('Rotary encoder module found on port %s\n.', Ports{i})
             break
         end
     end
@@ -158,11 +165,36 @@ if isempty(R)
     warning('!!! No rotary encoder module found. Wheel data will not be available in SessionData !!!');
 end
 
+
+%% check for ambient module
+clear AB
+try
+    AB = AmbientModule(S.ambientPort); %check if ambient module com port is correct
+catch
+    % check for analog module by finding a serial device that can create a waveplayer object
+    clear AB
+    Ports = FindSerialPorts; % get available serial com ports
+    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
+    Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
+    Ports = Ports(~strcmpi(Ports, S.rotaryEncoderPort)); %don't use rotary encoder port
+    for i = 1 : length(Ports)
+        try
+            AB = AmbientModule(S.ambientPort);
+            S.ambientPort = Ports{i};
+            break
+        end
+    end
+end
+
+if isempty(AB)
+    S.ambientPort = [];
+    warning('!!! No ambient module found. Ambient data will not be available in SessionData !!!');
+end
+
 %% Stimulus parameters - Create trial types list (single vs double stimuli)
 maxTrials = 5000;
 TrialSidesList = double(rand(1,maxTrials) < S.ProbRight); % ONE MEANS RIGHT TRIAL
 PrevProbRight = S.ProbRight;
-BpodSystem.Data.cTrial = 1; BpodSystem.Data.Rewarded = logical([]); %needed for cam streamer to work in first trial
 BpodSystem.Data.TrialStartTime = [];
 [dataPath, bhvFile] = fileparts(BpodSystem.Path.CurrentDataFile);
 tmp = strsplit(bhvFile,'_');
@@ -174,10 +206,10 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
     %%
     BpodNotebook('init');
   
-    BpodSystem.GUIHandles.SpatialSparrow = SpatialSparrow_GUI;
+    BpodSystem.GUIHandles.PuffyPenguin = PuffyPenguin_GUI;
     %BpodSystem.Data.animalWeight = str2double(newid('Enter animal weight (in grams)')); %ask for animal weight and save
-    BpodSystem.GUIHandles.SpatialSparrow.getSettingsFromBpod();
-    BpodSystem.GUIHandles.SpatialSparrow.init_plots();
+    BpodSystem.GUIHandles.PuffyPenguin.getSettingsFromBpod();
+    BpodSystem.GUIHandles.PuffyPenguin.init_plots();
     
 	%% initialize communication with labcams to get videos
     if isfield(BpodSystem.ProtocolSettings,'labcamsAddress')
@@ -229,6 +261,7 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                     end
                 end
             end
+            
             if exist('udplabcams','var')
                 fwrite(udplabcams,['expname=' BpodSystem.Path.CurrentDataFile])
                 fgetl(udplabcams);
@@ -239,6 +272,40 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
             end
         end
     end
+    
+    %% initialize communication with visual stimulation server
+    BpodSystem.Path.visualPath = [fullfile(fileparts(BpodSystem.Path.DataFolder(1:end-1)), 'visualStim', 'Stimulus_frames'),filesep];
+    
+    batPath = [BpodSystem.Path.ProtocolFolder, BpodSystem.ProtocolSettings.paradigmName, filesep, 'VisualStimulusClient.bat'];
+    
+    system(['"' batPath '" &']); %start visual stimulus client
+    pause(3);
+
+    tmp = strsplit(BpodSystem.ProtocolSettings.visualAddress,':');
+    udpAddress = tmp{1};
+    udpPort = str2num(tmp{2});
+    BpodSystem.PluginObjects.udpVisual = udp(udpAddress,udpPort);
+    BpodSystem.PluginObjects.udpVisual.TimeOut = 1;
+    fopen(BpodSystem.PluginObjects.udpVisual);
+    
+     % check if stim server is connected
+     tic
+     while BpodSystem.PluginObjects.udpVisual.BytesAvailable == 0 && toc <10
+         fwrite(BpodSystem.PluginObjects.udpVisual,'Ping'); pause(1);
+         if BpodSystem.PluginObjects.udpVisual.BytesAvailable > 0
+             fgetl(BpodSystem.PluginObjects.udpVisual);
+             disp(' -> Stim server connected.');
+             break
+         end
+     end
+     
+     fwrite(BpodSystem.PluginObjects.udpVisual,'Ping'); pause(0.1);
+     if BpodSystem.PluginObjects.udpVisual.BytesAvailable > 0
+         fgetl(BpodSystem.PluginObjects.udpVisual);
+         disp(' -> Stim server connected.');
+     else
+         warning('Could not establish connection to visual stimulation server. Visual stimuli wont be available.');
+     end
 end
 
 %% Initialize some arrays
