@@ -84,7 +84,7 @@ end
 sma = AddState(sma, 'Name', 'PlayStimulus', ... %present stimulus for the set stimulus duration.
     'Timer', stimStateDur, ... %waitDur is the duration the animal has to wait before moving to next state
     'StateChangeConditions', {'Tup', nextState},...
-    'OutputActions', {'WavePlayer1',['P' 0], 'TouchShaker1', 77}); %start stimulus presentation + stimulus trigger
+    'OutputActions', {'WavePlayer1',['P' 0], 'TouchShaker1', 77, 'BNCState', 2}); %start stimulus presentation + stimulus trigger from touchshaker and BNC2
     
 % add air puff states, if needed
 if ~isempty(tacSide)

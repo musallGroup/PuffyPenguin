@@ -33,13 +33,13 @@ DefaultSettings.triggerWidefield = 0;
 
 % Spout settings
 DefaultSettings.SpoutSpeed = 25; % Duration of spout movement from start to endpoint when moving in or out (value in ms)
-DefaultSettings.rInnerLim = 10; % Servo position to move right spoute close the animal (value between 0 and 100)
-DefaultSettings.lInnerLim = 10; % Servo position to move left spoute close the animal (value between 0 and 100)
-DefaultSettings.rOuterLim = 2; % Servo position to move right spoute more distant from the animal (value between 0 and 100)
-DefaultSettings.lOuterLim = 2; % Servo position to move left spoute more distant from the animal (value between 0 and 100)
+DefaultSettings.rInnerLim = 100; % Servo position to move right spoute close the animal (value between 0 and 100)
+DefaultSettings.lInnerLim = 100; % Servo position to move left spoute close the animal (value between 0 and 100)
+DefaultSettings.rOuterLim = 95; % Servo position to move right spoute more distant from the animal (value between 0 and 100)
+DefaultSettings.lOuterLim = 95; % Servo position to move left spoute more distant from the animal (value between 0 and 100)
 DefaultSettings.TouchThresh = 5; % Threshold for touch lines (SDUs)
-DefaultSettings.lMaxSpoutIn = 30; % maximal inner position for left spout
-DefaultSettings.rMaxSpoutIn = 30; % maximal inner position for right spout
+DefaultSettings.lMaxSpoutIn = 150; % maximal inner position for left spout
+DefaultSettings.rMaxSpoutIn = 150; % maximal inner position for right spout
 DefaultSettings.spoutOffset = 10; %distance from inner spout position when moved out
 
 % Trial timing
@@ -82,7 +82,7 @@ DefaultSettings.UseNoise = 0; % Amplitude (V) of auditory white-noise that is pl
 DefaultSettings.ProbAudio = 0; % Probability of presenting an audio only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.ProbVision = 0; % Probability of presenting an vision only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.ProbTactile = 0; % Probability of presenting a somatosensory only trial when modality setting allows it. Has no function otherwise.
-DefaultSettings.DecisionGap = [0.3 1.5]; % Range of a gap between stimulus and decision period in s.
+DefaultSettings.DecisionGap = [1]; % Range of a gap between stimulus and decision period in s.
 DefaultSettings.TestModality = 0; % Define a modality to be used with discrimination (1=vis,2=aud,4=ss), inactive if set to 0. All others will be detection only.
 DefaultSettings.optoProb = 1; % Probability to present an optogenetic stimulus. Ranges from 0 (no optogenetics) to 1 (all trials).
 DefaultSettings.optoAmp = 2; % Magnitude of optogenetic stimulus (V).

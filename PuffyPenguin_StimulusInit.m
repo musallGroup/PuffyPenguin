@@ -4,10 +4,10 @@ W.SamplingRate = BpodSystem.ProtocolSettings.sRate; %update sampling rate
 %% add decision gap if required
 cDecisionGap = 0;
 if any(S.DecisionGap ~= 0) % present decision gap
-    if length(S.DecisionGap) == 1 %if only one value is given, window should range between 0 and that value
-        S.DecisionGap = [0 abs(S.DecisionGap)];
+    if length(S.DecisionGap) == 1 %if only one value is given
+        cDecisionGap = abs(S.DecisionGap);
     end
-    if length(S.DecisionGap) == 2 %randomly pick from range of values
+    if length(S.DecisionGap) == 2 %randomly pick from range of 2 values
         S.DecisionGap = sort(abs(S.DecisionGap)); %make sure values are absoluted and sorted correctly
         cDecisionGap = (diff(S.DecisionGap) * rand) + S.DecisionGap(1); %choose random decision gap value for current trial
     elseif length(S.DecisionGap) > 2 %if more than 2 values are provided, randomly pick one of them
