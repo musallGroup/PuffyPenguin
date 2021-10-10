@@ -216,16 +216,15 @@ tacSide = [ones(1,length(stimEvents{5}))*4, ones(1,length(stimEvents{6}))*8];
 [tacEvents, idx] = sort(tacEvents);
 tacSide = tacSide(idx);
 
-if ~isempty(tacEvents)
-    % this is needed to change duration of the 'PlayStimulus' state
-    stimStateDur = 0;
-    
+if ~isempty(tacEvents)    
     % find cases where both valves should be used
     idx = [diff(tacEvents) 1] == 0;
     tacSide(find(idx)+1) = 12;
     tacEvents = tacEvents(~idx);
     tacSide = tacSide(~idx); %which valve. 4 for valve3, 8 for valve4, 12 for valve3+4 (8bit code)
     
+    % this is needed to change duration of the 'PlayStimulus' state. Wait until the first tactile event.
+    stimStateDur = tacEvents(1);
 else
     stimStateDur = stimDur;
 end
