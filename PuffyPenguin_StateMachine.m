@@ -96,11 +96,17 @@ if ~isempty(tacSide)
     
     for iPuff = 1 : length(tacSide)
 
+        if iPuff == 1
+            nextState = {'ValveState', tacSide(iPuff), 'BNCState', 2};
+        else
+            nextState = {'ValveState', tacSide(iPuff)};
+        end
+        
         % air puff state
         sma = AddState(sma, 'Name', ['Puff_' num2str(iPuff)], ... %present stimulus for the set stimulus duration.
             'Timer', puffDur, ... %duration of air puff
             'StateChangeConditions', {'Tup', ['PuffWait_' num2str(iPuff)]},...
-            'OutputActions', {'ValveState', tacSide(iPuff)}); %start stimulus presentation + stimulus trigger
+            'OutputActions', nextState); %start stimulus presentation + stimulus trigger
             
         % check if this is the last event
         if iPuff == length(tacSide)
