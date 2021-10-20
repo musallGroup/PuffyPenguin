@@ -38,6 +38,6 @@ teensyWrite(106); % Move both spouts to outer position
 
 % this needs to wait for everything to move before releasing the function.
 done = false;
-tic
-while ~teensyWrite(88) && toc < 5 % wait for movement to finish (5 seconds max)
-end
+% tic
+% while ~teensyWrite(88) && toc < 5 % wait for movement to finish (5 seconds max)
+% end

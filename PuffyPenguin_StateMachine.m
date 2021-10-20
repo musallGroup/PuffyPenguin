@@ -71,7 +71,7 @@ sma = AddState(sma, 'Name', 'PreStimulus', ... %wait before starting the stimulu
     'OutputActions', {});
 
 sma = AddState(sma, 'Name', 'VisualStim', ... %start visual stimulation, wait for feedback from photodiodes
-    'Timer', 0, ...
+    'Timer', 5, ...
     'StateChangeConditions', {'Tup','PlayStimulus', 'AnalogIn1_1','PlayStimulus', 'AnalogIn1_2','PlayStimulus', 'AnalogIn1_3','PlayStimulus'},...
     'OutputActions', {'SoftCode', 1});
 
@@ -129,8 +129,8 @@ sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add gap after stimulus presentat
     'StateChangeConditions', {'Tup','MoveSpout'},...
     'OutputActions', {});
 
-if (S.AutoReward || GiveReward) && SingleSpout % then give the reward right away
-    movespout_cond =  {'Tup','Reward','TouchShaker1_14','Reward'};
+if (S.AutoReward || GiveReward) % give some auto reward
+    movespout_cond =  {'Tup','AutoReward','TouchShaker1_14','AutoReward'};
 else % check the animal response
     movespout_cond = {'Tup','WaitForResponse','TouchShaker1_14','WaitForResponse'};
 end
@@ -139,6 +139,11 @@ sma = AddState(sma, 'Name', 'MoveSpout', ... %move spouts towards the animal so 
     'Timer', 0.1, ...
     'StateChangeConditions', movespout_cond,...
     'OutputActions', {'TouchShaker1', 101}); % trigger to moves spouts in
+
+sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
+    'Timer', rewardValveTime,...
+    'StateChangeConditions', {'Tup','WaitForResponse'},...
+    'OutputActions', {'ValveState', RewardValve}); %open reward valve
 
 sma = AddState(sma, 'Name', 'WaitForResponse', ... %wait for animal response after stimulus was presented
     'Timer', S.TimeToChoose, ...

@@ -61,8 +61,9 @@ for iTrials = 1 : maxTrials
             java.lang.Thread.sleep((ITIjitter - trialPrep - 0.1)*1000); %wait a moment to get to determined ITI
         end
         
-        BpodSystem.SerialPort.read(BpodSystem.SerialPort.bytesAvailable, 'uint8'); %remove all bytes from serial port
+        BpodSystem.SerialPort.read(BpodSystem.SerialPort.bytesAvailable, 'uint8'); %remove all bytes from serial port        
         setMotorPositions;
+        
         
         %% check for weird bytes. This maybe happens if the touchshaker sends a lot of false lick bytes? Broken cable?
         BpodSystem.Data.weirdBytes = false;
@@ -73,10 +74,10 @@ for iTrials = 1 : maxTrials
             pause(0.01);
             BpodSystem.Data.weirdBytes = true;
         end
-
+        
         %% run bpod and save data after trial is finished
         PuffyPenguin_StateMachine; %produce state machine and upload to bpod
-        
+
         % set the frame number just before starting
         if exist('udplabcams','var')
             fwrite(udplabcams,sprintf('log=trial_start:%d',iTrials));

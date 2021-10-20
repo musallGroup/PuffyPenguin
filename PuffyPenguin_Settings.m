@@ -33,10 +33,10 @@ DefaultSettings.triggerWidefield = 0;
 
 % Spout settings
 DefaultSettings.SpoutSpeed = 25; % Duration of spout movement from start to endpoint when moving in or out (value in ms)
-DefaultSettings.rInnerLim = 100; % Servo position to move right spoute close the animal (value between 0 and 100)
-DefaultSettings.lInnerLim = 100; % Servo position to move left spoute close the animal (value between 0 and 100)
-DefaultSettings.rOuterLim = 95; % Servo position to move right spoute more distant from the animal (value between 0 and 100)
-DefaultSettings.lOuterLim = 95; % Servo position to move left spoute more distant from the animal (value between 0 and 100)
+DefaultSettings.rInnerLim = 90; % Servo position to move right spoute close the animal (value between 0 and 100)
+DefaultSettings.lInnerLim = 90; % Servo position to move left spoute close the animal (value between 0 and 100)
+DefaultSettings.rOuterLim = 80; % Servo position to move right spoute more distant from the animal (value between 0 and 100)
+DefaultSettings.lOuterLim = 80; % Servo position to move left spoute more distant from the animal (value between 0 and 100)
 DefaultSettings.TouchThresh = 5; % Threshold for touch lines (SDUs)
 DefaultSettings.lMaxSpoutIn = 150; % maximal inner position for left spout
 DefaultSettings.rMaxSpoutIn = 150; % maximal inner position for right spout
@@ -63,14 +63,14 @@ DefaultSettings.UseStimStartCue = 1;
 %Stimulus settings
 DefaultSettings.BeepDuration = 3; % Beep duration in ms.
 DefaultSettings.FlashDuration = 20; % Flash duration in ms.
-DefaultSettings.BuzzDuration = 10; % Buzz duration in ms.
+DefaultSettings.BuzzDuration = 50; % Buzz duration in ms.
 DefaultSettings.varStimOn = [0 0.125 0.25]; % Variable onset time for stimulus after lever grab in s. This can be a vector of values. Have to be 0 and higher.
 DefaultSettings.StimBrightness = 20; %Brightness of flashes. Multiplier of base frequency (default is 100Hz).
 DefaultSettings.StimLoudness = 0.5; %Loudness of tones
 DefaultSettings.BuzzStrength = 1; %Strength of buzzes
 DefaultSettings.WaitForCam = false; % Any positive value will make each trial wait for a trigger signal from the camera. After CamWait seconds without trigger, protocol will continue.
 DefaultSettings.StimRate = 2; % Rate of target sequence. Can be either a single scalar or a vector.
-DefaultSettings.TargFractions = 0.7; % Probability of showing a stimulus in a given bin of the target sequence. Should be a single number between 0-1
+DefaultSettings.TargFractions = 1; % Probability of showing a stimulus in a given bin of the target sequence. Should be a single number between 0-1
 DefaultSettings.DistFractions = 0.3; % Probability of showing a stimulus in a given bin of a distractor sequence. Should be a single number between 0-1
 DefaultSettings.DistProb = 0; % Probability of a presenting a distractor trial. Only has an effect if DistFractions > 0.
 DefaultSettings.useDistAudio = true;

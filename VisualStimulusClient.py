@@ -41,10 +41,22 @@ class MyClient:
         except socket.timeout:
             data = []
         except Exception as e:
+            print(e)
             raise e
         #
 
         return data
+    #
+
+    def flush(self):
+        try:
+            while self.s.recv(1024):
+                pass
+            #
+        except:
+            # This should be called in case of a time out
+            pass
+        #
     #
 
     def close(self):
@@ -57,8 +69,8 @@ class MyClient:
 
 if __name__ == '__main__':
     root_path = r'E:\Bpod Local\visualStim'
-    left_monitor_id = 0
-    right_monitor_id = 1
+    left_monitor_id = 3
+    right_monitor_id = 2
 
     # start TCP-client
     client = MyClient()
@@ -66,8 +78,8 @@ if __name__ == '__main__':
     gray_path_l = path.join(root_path, 'Stimulus_frames', 'gray_l.png')
 
     # open the windows
-    vis_stim_l = VisualStimulus(screen=left_monitor_id, screen_size=(1920, 1080), wait_blanking=False, fullscr=False)
-    vis_stim_r = VisualStimulus(screen=right_monitor_id, screen_size=(1920, 1080), wait_blanking=True, fullscr=False)
+    vis_stim_l = VisualStimulus(screen=left_monitor_id, screen_size=(1920, 1080), wait_blanking=False, fullscr=True)
+    vis_stim_r = VisualStimulus(screen=right_monitor_id, screen_size=(1920, 1080), wait_blanking=True, fullscr=True)
 
     vis_stim_l.change_image(gray_path_l)
     vis_stim_r.change_image(gray_path_r)
@@ -113,6 +125,8 @@ if __name__ == '__main__':
                     break
                 #
             #
+
+            client.flush()
 
             # mandatory gray frame
             vis_stim_l.change_image(gray_path_l)

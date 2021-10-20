@@ -3,6 +3,9 @@
 BpodSystem.ProtocolSettings.cTrial = iTrials; %log current trial ID in bpod object
 BpodSystem.Data.cTrial = iTrials; %log current trial ID in bpod object
 S = BpodSystem.ProtocolSettings; %update settings for this trial
+     
+% set analog input lines to zero at black indicator
+A.setZero()
 
 %% create sounds - recreate if loudness has changed
 if iTrials == 1 || PrevStimLoudness ~= S.StimLoudness
@@ -26,7 +29,7 @@ end
 
 %% update valve times
 LeftValveTime = GetValveTimes(S.leftRewardVolume, 1);
-RightValveTime = GetValveTimes(S.rightRewardVolume, 3);
+RightValveTime = GetValveTimes(S.rightRewardVolume, 2);
 
 % if stimulus probability has changed, compute a new sidelist and re-initate outcome plot
 if PrevProbRight ~= S.ProbRight

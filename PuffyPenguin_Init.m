@@ -110,11 +110,17 @@ if isempty(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
 else
     disp('Using lick thresholds from the last run.')
     teensySetTouchThresh(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
-    ls = num2str(BpodSystem.ProtocolSettings.lInnerLim);
-    rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
-    teensyWrite([71 length(ls)  ls length(rs)  rs]);
 end
 
+%move spouts to inner position
+val = BpodSystem.ProtocolSettings.SpoutSpeed; %SpoutSpeed
+teensyWrite([73 length(num2str(val)) num2str(val)]); %set spout speed
+     
+ls = num2str(BpodSystem.ProtocolSettings.lInnerLim);
+rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
+teensyWrite([71 length(ls)  ls length(rs)  rs]);
+
+       
 %% check for analog input module
 clear A
 try
@@ -136,6 +142,11 @@ end
 if isempty(A)
     warning('No analog input module found. Session aborted.');
     BpodSystem.Status.BeingUsed = 0;
+else
+    A.Thresholds = [0.075 0.075 0.075 10 10 10 10 10]; %set thresholds for photodiode
+    A.ResetVoltages = [0.02 0.02 0.02 0 0 0 0 0]; %set thresholds for reset
+    A.SMeventsEnabled(1:3) = true;
+    A.startReportingEvents();
 end
 
 
@@ -179,14 +190,14 @@ catch
     Ports = Ports(~strcmpi(Ports, S.rotaryEncoderPort)); %don't use rotary encoder port
     for i = 1 : length(Ports)
         try
-            AB = AmbientModule(S.ambientPort);
+            AB = AmbientModule(Ports{i});
             S.ambientPort = Ports{i};
             break
         end
     end
 end
 
-if isempty(AB)
+if ~exist('AB', 'var') || isempty(AB) 
     S.ambientPort = [];
     warning('!!! No ambient module found. Ambient data will not be available in SessionData !!!');
 end
@@ -231,9 +242,9 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 disp(' -> starting labcams');
                 if ~isunix
                     labcamsproc=System.Diagnostics.Process.Start('labcams.exe','-w');
-                    pause(3);
+                    pause(5); tic;
                     if ~labcamsproc.HasExited
-                        while labcamsproc.Responding
+                        while labcamsproc.Responding && toc < 10
                             fwrite(udplabcams,'ping')
                             tmp = fgetl(udplabcams);
                             if ~isempty(tmp)

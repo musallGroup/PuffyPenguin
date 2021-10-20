@@ -1,4 +1,4 @@
-# PuffyPengiun
+# SpatialSparrow
 
 Multimodal rate discriminaton behavioral task for mice.
 

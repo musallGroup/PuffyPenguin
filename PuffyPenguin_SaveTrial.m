@@ -6,30 +6,7 @@ if length(fieldnames(RawEvents)) > 1
     BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); %collect trialdata
     BpodSystem.Data.Punished(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.HardPunish(1)); %False choice
     BpodSystem.Data.DidNotChoose(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.DidNotChoose(1)); %No choice
-
-    % then it is autoreward, check if the mouse licked to the correct right side
-    if (BpodSystem.ProtocolSettings.AutoReward && SingleSpout)
-        BpodSystem.Data.Rewarded(iTrials) = 0;
-        if correctSide == 1
-            if isfield(BpodSystem.Data.RawEvents.Trial{1,iTrials}.Events,'TouchShaker1_1')
-               if length(BpodSystem.Data.RawEvents.Trial{1,iTrials}.Events.TouchShaker1_1)>2
-                    BpodSystem.Data.Rewarded(iTrials) = 1;
-               else
-                    BpodSystem.Data.DidNotChoose(iTrials) = 1;
-               end
-            end
-        else
-            if isfield(BpodSystem.Data.RawEvents.Trial{1,iTrials}.Events,'TouchShaker1_2')
-               if length(BpodSystem.Data.RawEvents.Trial{1,iTrials}.Events.TouchShaker1_2)>2
-                    BpodSystem.Data.Rewarded(iTrials) = 1;
-               else
-                    BpodSystem.Data.DidNotChoose(iTrials) = 1;
-               end
-            end
-        end
-    else
-        BpodSystem.Data.Rewarded(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.Reward(1)); %Correct choice
-    end
+    BpodSystem.Data.Rewarded(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.Reward(1)); %Correct choice
     
     BpodSystem.Data.stimRate(iTrials) = S.StimRate; %Stimulus rate in Hz
     BpodSystem.Data.targFrac(iTrials) = S.TargFractions(1); %fraction of used bins on target side

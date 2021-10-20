@@ -7,7 +7,7 @@ if S.TrainingMode == 1
     elseif StimType == 2
         checker = S.fractionTrainingAudio;
     elseif StimType == 4
-        checker = S.fractionTrainingPiezo;
+        checker = S.fractionTrainingTactile;
     elseif ismember(StimType,[3 5 6 7])
         checker = S.fractionTrainingMixed;
     else
