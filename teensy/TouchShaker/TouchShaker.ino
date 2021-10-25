@@ -915,7 +915,7 @@ void loop() {
     ///////////////////////////////////////////////////
 
     // send touch data for serial monitor
-    for (int i = 0; i < 4; i++) { // send some feedback about touch events
+    for (int i = 0; i < 2; i++) { // send some feedback about touch events
 
       touchVal = touchData[i] + (i * 1500); //((touchData[i] / pow(2,16)) * pow(2,8) + (i*5)); // convert value from 16 to 8 bit number
       Serial.print(int(touchVal)); Serial.print(",");
