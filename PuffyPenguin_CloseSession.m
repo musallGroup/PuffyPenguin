@@ -30,6 +30,10 @@ catch err
     disp("Error stopping video.")
     disp(err.message)
 end
+
+% save screenshot of current session
+BpodSystem.GUIHandles.PuffyPenguin.TabGroup.SelectedTab = BpodSystem.GUIHandles.PuffyPenguin.TaskTab; %bring task tab to foreground
+exportapp(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure, [BpodSystem.Path.CurrentDataFile '_GUIpic.jpg']);
   
 % check for path to server and save behavior + graph
 if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') %if server responds
@@ -54,6 +58,7 @@ if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') %if server responds
             end
             disp(['Writing to: ',serverPath])
             [SUCCESS,MESSAGE,MESSAGEID] = copyfile([BpodSystem.Path.CurrentDataFile '.mat'],[serverPath '.mat']);
+            [SUCCESS,MESSAGE,MESSAGEID] = copyfile([BpodSystem.Path.CurrentDataFile '_GUIpic.jpg'],[serverPath '_GUIpic.jpg']);
             try
                 if exist('hasvideo','var')
                     if hasvideo
@@ -88,4 +93,6 @@ try
     drawnow;
 end
 
+% close GUI
+close(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure)
 

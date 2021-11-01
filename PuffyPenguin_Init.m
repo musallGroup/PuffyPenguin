@@ -83,34 +83,25 @@ end
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
 
 % setting thresholds - move to outer
-if ~isfield(BpodSystem.ProtocolSettings,'capacitiveTouchThresholds') 
-    BpodSystem.ProtocolSettings.capacitiveTouchThresholds = [];
-end
-if isempty(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
-    disp('Teensy is setting the thresholds')
-    pause(1);
-    teensyWrite([71 1 '1' 1 '1']); % Move spouts to most outer position
+disp('Teensy is setting the thresholds')
+pause(0.5);
+teensyWrite([71 1 '1' 1 '1']); % Move spouts to most outer position
 
-    %set touch threshold
-    cVal = num2str(BpodSystem.ProtocolSettings.TouchThresh);
-    teensyWrite([75 length(cVal) cVal]);
-    pause(2); %give some time for calibration
+%set touch threshold
+cVal = num2str(BpodSystem.ProtocolSettings.TouchThresh);
+teensyWrite([75 length(cVal) cVal]);
+pause(2); %give some time for calibration
+res = teensyGetTouchThresh();
+ii = 0;
+while isempty(res)
     res = teensyGetTouchThresh();
-    ii = 0;
-    while isempty(res)
-        res = teensyGetTouchThresh();
-        ii = ii+1;
-        if ii == 5
-            disp('There was an error reading the thresholds from the teensy...')
-            break
-        end
+    ii = ii+1;
+    if ii == 5
+        disp('There was an error reading the thresholds from the teensy...')
+        break
     end
-    BpodSystem.ProtocolSettings.capacitiveTouchThresholds = res;
-    
-else
-    disp('Using lick thresholds from the last run.')
-    teensySetTouchThresh(BpodSystem.ProtocolSettings.capacitiveTouchThresholds)
 end
+BpodSystem.ProtocolSettings.capacitiveTouchThresholds = res;
 
 %move spouts to inner position
 val = BpodSystem.ProtocolSettings.SpoutSpeed; %SpoutSpeed
@@ -143,9 +134,9 @@ if isempty(A)
     warning('No analog input module found. Session aborted.');
     BpodSystem.Status.BeingUsed = 0;
 else
-    A.Thresholds = [0.075 0.075 0.075 10 10 10 10 10]; %set thresholds for photodiode
-    A.ResetVoltages = [0.02 0.02 0.02 0 0 0 0 0]; %set thresholds for reset
-    A.SMeventsEnabled(1:3) = true;
+    A.Thresholds = [0.075 0.075 0.075 0.075 10 10 10 10]; %set thresholds for photodiode
+    A.ResetVoltages = [0.02 0.02 0.1 0.1 0 0 0 0]; %set thresholds for reset
+    A.SMeventsEnabled(1:4) = true;
     A.startReportingEvents();
 end
 

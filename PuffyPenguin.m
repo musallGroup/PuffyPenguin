@@ -1,5 +1,6 @@
 function PuffyPenguin
 global BpodSystem
+clearvars -except BpodSystem
 
 PuffyPenguin_Settings; %script to define default settings if they are not defined by settings file
 PuffyPenguin_Init; %initialize hardware and establish labcams communication
