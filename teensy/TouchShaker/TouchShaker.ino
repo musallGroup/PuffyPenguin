@@ -21,10 +21,6 @@
 #endif
 
 
-//#define USE_LOAD_CELL 1
-#ifdef USE_LOAD_CELL
-#include "HX711.h" //This load-cell library can be obtained here http://librarymanager/All#Avia_HX711
-#endif
 // –--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--
 // This version includes:
 // control two stepper motors to move the sputes
@@ -53,12 +49,6 @@ const int sRateLever = 10; // This is the number of ms for outputs to be during 
 #define PIN_TRIALTRIG 4 // trial-start trigger that can be switched by serial command 'MAKE_TRIALTRIGGER'
 #define PIN_CAMTIMER 3 // Trigger to synchronize camera acquisition. Sends TTL for 'camTrigDur' with an inter-pulse of 'camTrigRate'.
 
-#ifdef USE_LOAD_CELL
-// load cell pins
-#define LOADCELL_SCK_PIN  19
-#define LOADCELL_DOUT_PIN  20
-HX711 scale;
-#endif
 // Inputs for lick sensors
 #define LEVERSENSOR_L 15 // touch line for lever touch
 #define LEVERSENSOR_R 16 // touch line for lever touch
@@ -107,9 +97,6 @@ HX711 scale;
 #define GET_TOUCHLEVELS 95 // send the touch thresholds to bpod
 #define IS_MOVING 88
 
-#define START_SCALE 91 // identifier to start logging data from the load cell
-#define STOP_SCALE 92 // identifier to stop logging data from the load cell
-#define SEND_DATA_SCALE 93 // identifier to return data from load cell recording
 // outputs
 #define LEFT_SPOUT_TOUCH 1 // byte to indicate left spout is being touched
 #define RIGHT_SPOUT_TOUCH 2 // byte to indicate right spout is being touched
@@ -204,17 +191,6 @@ int trialDur = 50; // duration of trial trigger in ms
 float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.
 
-#ifdef USE_LOAD_CELL
-unsigned long scaleClocker = millis(); // timer for load-cell measurements
-bool readScale = false; // flag to collect data from load-cell
-int scaleRate = 10; // duration between samples from load-cell in ms (default is 10ms).
-unsigned long scaleCnt = 0; //counter to fill readings into scaleVals
-#define SCALE_READS 100 // maximum samples from load-cell per trial. Default duration for readout at 100Hz is 1 minute. decrease from 60000 for memory
-long scaleVals[SCALE_READS]; //array for scale readings.
-bool scaleWrap = false; // flag that scale reacording was above maximum. In this case, the full scaleVals array and the current scaleCnt is sent to Bpod.
-int weight_val = 0;
-#endif
-
 unsigned long usbClocker = millis();
 int usbRate = 5;
 /* #################################################
@@ -229,10 +205,6 @@ void setup() {
   Serial.begin(9600); // USB baud rate
   //Serial.println("Started spatial sparrow");
 
-#ifdef USE_LOAD_CELL
-  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN); // communication with load cell amp
-#endif
-  //digitalWrite(LOADCELL_SCK_PIN, HIGH);
   // Set servo pins to output mode
   pinMode(PIN_SPOUTSTEP_L, OUTPUT);
   pinMode(PIN_SPOUTSTEP_R, OUTPUT);
@@ -357,7 +329,7 @@ void serialEvent1() {
       break;
     case GET_TOUCHLEVELS:
       Serial1.write(GET_TOUCHLEVELS); // send header
-      for (int i=0;i<4;i++) {
+      for (int i=0;i<2;i++) {
         Serial1.print(stdTouchVals[i]);
         Serial1.print("_");
       }
@@ -524,29 +496,7 @@ void serialEvent1() {
         stdTouchVals[3] = stdTouchVals[3] - touchChangeInc;
         Serial1.write(OK);
         break;
-#ifdef USE_LOAD_CELL
-      case START_SCALE:// byte for scale recording
-          scaleCnt = 0;
-          scaleWrap = false;
-          scaleClocker = millis();
-          readScale = true;
-          Serial1.write(OK);
-          break;
-      case STOP_SCALE:
-          readScale = false;
-          Serial.write(OK);
-          break;
-      case SEND_DATA_SCALE:
-          Serial1COM.writeUint32(scaleCnt); // send current array index
-          if (scaleWrap) {
-            Serial1COM.writeInt32Array(scaleVals, SCALE_READS); // write full array
-          }
-          else {
-            Serial1COM.writeInt32Array(scaleVals, scaleCnt); // write partial array
-          }
-        Serial1.write(OK);
-        break;
-#endif
+
     case IS_MOVING:
         if (spoutMoves || leverMoves) {
           Serial1.write(FAIL);
@@ -897,21 +847,8 @@ void loop() {
   }
 
 
-#ifdef USE_LOAD_CELL
-  ////////////////////////////////////////////////
-  /////// check load-cell inputs /////////////////
-  if (scale.is_ready() && readScale && ((millis() - scaleClocker) >= scaleRate)) {
-    scaleVals[scaleCnt] = scale.read();
-    ++scaleCnt;
-    if (scaleCnt > SCALE_READS) {
-      scaleCnt = 0;
-      scaleWrap = true;
-    }
-  }
-#endif
-  if (Serial && ((millis() - usbClocker) >= usbRate)) { // (false){
+  if (Serial && ((millis() - usbClocker) >= usbRate)) {
     usbClocker = millis();
-    //    long wv_tmp = scale.read();
     ///////////////////////////////////////////////////
 
     // send touch data for serial monitor
@@ -923,9 +860,6 @@ void loop() {
       touchVal = (meanTouchVals[i] + (stdTouchVals[i] * touchThresh)) + (i * 1500); //(((meanTouchVals[i]+(stdTouchVals[i]*touchThresh))/ pow(2,16)) * pow(2,8) + (i*5)); // convert bound from 16 to 8 bit number
       Serial.print(int(touchVal)); Serial.print(",");
     }
-    //    weight_val = ((wv_tmp / pow(2,16)) * pow(2,8) + (4*20)); // convert value from 16 to 8 bit number
-    //  weight_val = ((scaleVals[scaleCnt] / pow(2,16)) * pow(2,8) + (4*20)); // convert value from 16 to 8 bit number
-    //    Serial.print(byte(weight_val));
     Serial.println();
   }
 
