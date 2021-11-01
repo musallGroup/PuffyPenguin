@@ -192,7 +192,7 @@ float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.
 
 unsigned long usbClocker = millis();
-int usbRate = 5;
+int usbRate = 10;
 /* #################################################
   ##################### CAMERA TRIGGER ###############
   #################################################### */
@@ -329,7 +329,7 @@ void serialEvent1() {
       break;
     case GET_TOUCHLEVELS:
       Serial1.write(GET_TOUCHLEVELS); // send header
-      for (int i=0;i<2;i++) {
+      for (int i=0;i<4;i++) {
         Serial1.print(stdTouchVals[i]);
         Serial1.print("_");
       }
