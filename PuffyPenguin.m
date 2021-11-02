@@ -1,6 +1,5 @@
 function PuffyPenguin
 global BpodSystem
-clearvars -except BpodSystem
 
 PuffyPenguin_Settings; %script to define default settings if they are not defined by settings file
 PuffyPenguin_Init; %initialize hardware and establish labcams communication
@@ -94,7 +93,7 @@ for iTrials = 1 : maxTrials
         PuffyPenguin_SaveTrial; %save data from current trial and settings if requested
         
         try
-            BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots();
+            BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots;
         catch
             disp('Could not update performance plots.')
         end

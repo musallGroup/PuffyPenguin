@@ -118,13 +118,13 @@ try
     A = BpodAnalogIn(S.analogInPort); %check if analog module com port is correct
 catch
     % check for analog module by finding a serial device that can create a waveplayer object
-    A = [];
+    A = []; try BpodWavePlayer(S.analogInPort);end %waveplayer somehow helps to free up the port
     Ports = FindSerialPorts; % get available serial com ports
     Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
     for i = 1 : length(Ports)
         try
             A = BpodAnalogIn(Ports{i});
-            S.analogInPort = Ports{i};
+            S.analogInPort = Ports{i}; disp(Ports{i});
             break
         end
     end

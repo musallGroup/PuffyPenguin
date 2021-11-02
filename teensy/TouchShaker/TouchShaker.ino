@@ -192,7 +192,7 @@ float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.
 
 unsigned long usbClocker = millis();
-int usbRate = 10;
+int usbRate = 30;
 /* #################################################
   ##################### CAMERA TRIGGER ###############
   #################################################### */
