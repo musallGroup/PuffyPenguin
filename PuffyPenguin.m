@@ -5,9 +5,9 @@ PuffyPenguin_Settings; %script to define default settings if they are not define
 PuffyPenguin_Init; %initialize hardware and establish labcams communication
 
 %% wait for start signal from GUI
-figure(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure); %bring to foreground
 BpodSystem.GUIHandles.PuffyPenguin.PauseSwitch.Value = 'pause'; drawnow;
 BpodSystem.Status.PuffyPenguinPause = true;
+figure(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure); %bring to foreground
 while BpodSystem.Status.PuffyPenguinPause
     drawnow; pause(0.03);
 end
