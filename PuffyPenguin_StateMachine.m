@@ -10,7 +10,7 @@ end
 
 sma = AddState(sma, 'Name', 'TrialStart', ... %trigger to signal trialstart to attached hardware.
     'Timer', 0.1, ...
-    'StateChangeConditions', {'Tup','PreStimulus'},... %wait for imager before producing barcode sequence
+    'StateChangeConditions', {'Tup','TriggerDowntime'},... %wait for imager before producing barcode sequence
     'OutputActions', startOut); % BNC 1 is high, all others are low, sends message to scan image
 
 sma = AddState(sma, 'Name', 'TriggerDowntime', ... %give a 50ms downtime of the trigger before sending the barcode. Might help with to ensure that data is correctly recorded.
@@ -53,7 +53,7 @@ else
     startTrigger = {}; % this will play the trial start cue
 end
 
-sma = AddState(sma, 'Name', 'StimTrigger', ... %trialstart trigger
+sma = AddState(sma, 'Name', 'StartTrigger', ... %trialstart trigger
     'Timer', 0, ...
     'StateChangeConditions', {'Tup','PreStimulus'},...
     'OutputActions', startTrigger);
@@ -72,7 +72,7 @@ sma = AddState(sma, 'Name', 'PreStimulus', ... %wait before starting the stimulu
 
 sma = AddState(sma, 'Name', 'VisualStim', ... %start visual stimulation, wait for feedback from photodiodes
     'Timer', 5, ...
-    'StateChangeConditions', {'Tup','PlayStimulus', 'AnalogIn1_1','PlayStimulus', 'AnalogIn1_2','PlayStimulus', 'AnalogIn1_3','PlayStimulus'},...
+    'StateChangeConditions', {'Tup','PlayStimulus', 'AnalogIn1_1','PlayStimulus', 'AnalogIn1_2','PlayStimulus'},...
     'OutputActions', {'SoftCode', 1});
 
 if isempty(tacSide)
