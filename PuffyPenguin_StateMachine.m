@@ -1,12 +1,20 @@
 %PuffyPenguin_StateMachine
 
-%% Build state matrix
-sma = NewStateMatrix();
-
+%% check some conditions before building the state machine
 startOut = {'BNCState',1};
 if ~isempty(S.rotaryEncoderPort)
     startOut = [startOut, {'RotaryEncoder1', 'L'}];
 end
+
+% check auto reward state for current trial
+if (S.AutoReward || GiveReward)
+    checkAutoState =  'AutoReward';
+else % check the animal response
+    checkAutoState = 'DelayPeriod';
+end
+
+%% Build state matrix
+sma = NewStateMatrix();
 
 sma = AddState(sma, 'Name', 'TrialStart', ... %trigger to signal trialstart to attached hardware.
     'Timer', 0.1, ...
@@ -110,7 +118,7 @@ if ~isempty(tacSide)
             
         % check if this is the last event
         if iPuff == length(tacSide)
-            nextState = 'DelayPeriod';
+            nextState = checkAutoState; %this is the last puff so move to autoreward/delay period state
         else
             nextState = ['Puff_' num2str(iPuff+1)];
         end
@@ -124,26 +132,20 @@ if ~isempty(tacSide)
     end
 end
 
-sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add gap after stimulus presentation
-    'Timer', cDecisionGap, ...
-    'StateChangeConditions', {'Tup','MoveSpout'},...
-    'OutputActions', {});
+sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
+    'Timer', rewardValveTime,...
+    'StateChangeConditions', {'Tup','DelayPeriod'},...
+    'OutputActions', {'ValveState', RewardValve}); %open reward valve
 
-if (S.AutoReward || GiveReward) % give some auto reward
-    movespout_cond =  {'Tup','AutoReward','TouchShaker1_14','AutoReward'};
-else % check the animal response
-    movespout_cond = {'Tup','WaitForResponse','TouchShaker1_14','WaitForResponse'};
-end
+sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add delay after stimulus presentation
+    'Timer', cDecisionGap, ...
+    'StateChangeConditions', 'MoveSpout',...
+    'OutputActions', {});
 
 sma = AddState(sma, 'Name', 'MoveSpout', ... %move spouts towards the animal so it can report its choice
     'Timer', 0.1, ...
-    'StateChangeConditions', movespout_cond,...
+    'StateChangeConditions', 'WaitForResponse',...
     'OutputActions', {'TouchShaker1', 101}); % trigger to moves spouts in
-
-sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
-    'Timer', rewardValveTime,...
-    'StateChangeConditions', {'Tup','WaitForResponse'},...
-    'OutputActions', {'ValveState', RewardValve}); %open reward valve
 
 sma = AddState(sma, 'Name', 'WaitForResponse', ... %wait for animal response after stimulus was presented
     'Timer', S.TimeToChoose, ...
