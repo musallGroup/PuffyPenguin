@@ -8,7 +8,7 @@ end
 
 % check auto reward state for current trial
 if (S.AutoReward || GiveReward)
-    checkAutoState =  'AutoReward';
+    checkAutoState = 'AutoReward';
 else % check the animal response
     checkAutoState = 'DelayPeriod';
 end
@@ -139,12 +139,12 @@ sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
 
 sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add delay after stimulus presentation
     'Timer', cDecisionGap, ...
-    'StateChangeConditions', 'MoveSpout',...
+    'StateChangeConditions', {'Tup','MoveSpout'},...
     'OutputActions', {});
 
 sma = AddState(sma, 'Name', 'MoveSpout', ... %move spouts towards the animal so it can report its choice
     'Timer', 0.1, ...
-    'StateChangeConditions', 'WaitForResponse',...
+    'StateChangeConditions', {'Tup', 'WaitForResponse'},...
     'OutputActions', {'TouchShaker1', 101}); % trigger to moves spouts in
 
 sma = AddState(sma, 'Name', 'WaitForResponse', ... %wait for animal response after stimulus was presented
