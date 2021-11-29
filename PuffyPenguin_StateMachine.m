@@ -35,7 +35,7 @@ for iCode = 1:size(code,2)
     
     stateName = nextState;
     if iCode == size(code,2)
-        nextState = 'StimTrigger';
+        nextState = 'StartTrigger';
     else
         nextState = ['trialCode' num2str(Cnt + 1)];
     end

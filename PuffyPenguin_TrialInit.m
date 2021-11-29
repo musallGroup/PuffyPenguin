@@ -56,7 +56,8 @@ if S.UseAntiBias
     
     if sum(temp == 0) > 5 && sum(temp == 1) > 5 %if more than 5 trials were performed on both sides
         LastBias = iTrials;
-        SideDiff = BpodSystem.Data.rPerformance(iTrials-1)-BpodSystem.Data.lPerformance(iTrials-1); %performance difference
+%         SideDiff = BpodSystem.Data.rPerformance(iTrials-1)-BpodSystem.Data.lPerformance(iTrials-1); %performance difference
+        SideDiff = 0;
         if abs(SideDiff) > 0.2 && abs(SideDiff) < 0.5 %small correction
             cMove = 1;
         elseif abs(SideDiff) >=  0.5 && abs(SideDiff) < 1 %medium correction
