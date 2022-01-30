@@ -106,6 +106,7 @@ for iTrials = 1 : maxTrials
             RunProtocol('Stop')
         end
     else  %stop code if stop button is pressed and close figures
+        PuffyPenguin_checkPerformance
         PuffyPenguin_CloseSession
         break;
     end
