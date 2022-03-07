@@ -33,7 +33,7 @@
 unsigned long FirmwareVersion = 2;
 char moduleName[] = "TouchShaker"; // Name of module for manual override UI and state machine assembler
 ArCOM Serial1COM(Serial1); // UART serial port
-
+ 
 unsigned long clocker = millis();
 unsigned long stimClocker = millis();
 unsigned long trialClocker = millis();
@@ -186,7 +186,7 @@ bool leverTouch_BOTH = false; // flag to indicate that both levers are touched
 bool findSpoutOut[2] = {true, true}; // flag that stepper motors are being moved out.
 bool findLeverOut[2] = {true, true}; // flag that stepper motors are being moved out.
 int stepPulse = 10; // duration of stepper pulse in microseconds
-int stimDur = 5; // duration of stimulus trigger in ms
+int stimDur = 100; // duration of stimulus trigger in ms
 int trialDur = 50; // duration of trial trigger in ms
 float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.

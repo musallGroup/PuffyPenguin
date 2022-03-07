@@ -134,8 +134,9 @@ if isempty(A)
     warning('No analog input module found. Session aborted.');
     BpodSystem.Status.BeingUsed = 0;
 else
-    A.Thresholds = [0.075 0.075 0.075 0.075 10 10 10 10]; %set thresholds for photodiode
-    A.ResetVoltages = [0.02 0.02 0.1 0.1 0 0 0 0]; %set thresholds for reset
+    A.Thresholds = [0.06 0.06 0.02 0.02 1 1 1 1]; %set thresholds for photodiode
+    A.ResetVoltages = [0.02 0.02 0.06 0.06 0 0 0 0]; %set thresholds for reset
+    A.InputRange = {'-2.5V:2.5V'  '-2.5V:2.5V'  '-2.5V:2.5V'  '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V'};
     A.SMeventsEnabled(1:4) = true;
     A.startReportingEvents();
 end
