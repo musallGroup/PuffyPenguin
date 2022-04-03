@@ -61,12 +61,12 @@ for x = 1:6
 end
 
 %% check if more events ended up on distrator side by chance and flip sides for that case
-
 %auditory
 if (length(events{1}) < length(events{2}) && targSide == 0) || ...
    (length(events{2}) < length(events{1}) && targSide == 1)
 
     events([1 2]) = events([2 1]);
+    binSeq([1 2]) = binSeq([2 1]);
 end
 
 %vision
@@ -74,6 +74,7 @@ if (length(events{3}) < length(events{4}) && targSide == 0) || ...
    (length(events{4}) < length(events{3}) && targSide == 1)
 
     events([3 4]) = events([4 3]);
+    binSeq([3 4]) = binSeq([4 3]);
 end
 
 %tactile
@@ -81,6 +82,7 @@ if (length(events{5}) < length(events{6}) && targSide == 0) || ...
    (length(events{6}) < length(events{5}) && targSide == 1)
 
     events([5 6]) = events([6 5]);
+    binSeq([5 6]) = binSeq([6 5]);
 end
 
 %% convert stimEvents into analog trace

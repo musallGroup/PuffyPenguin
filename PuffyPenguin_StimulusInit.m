@@ -191,8 +191,19 @@ end
 distFrac = Sample(S.DistFractions);
 
 %% create analog waveforms
-[Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
-
+checker = true; %make sure there is an unequal amount of stimuli on both sides
+while checker
+    
+    [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
+    cellfun(@sum,binSeq)
+    checker = false;
+    
+    for x = [1 3 5]
+        if sum(binSeq{x}) > 0 && sum(binSeq{x}) == sum(binSeq{x+1}) %equal amount of stimuli on both sides, re-run stimulus code
+            checker = true;
+        end
+    end
+end
 %% create string for visual stimuli
 % vision left - only works for 3s, 2Hz stimuli right now
 leftString = 'left_000000';
