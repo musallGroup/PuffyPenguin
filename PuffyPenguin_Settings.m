@@ -84,14 +84,18 @@ DefaultSettings.ProbVision = 0; % Probability of presenting an vision only trial
 DefaultSettings.ProbTactile = 0; % Probability of presenting a somatosensory only trial when modality setting allows it. Has no function otherwise.
 DefaultSettings.DecisionGap = [1]; % Range of a gap between stimulus and decision period in s.
 DefaultSettings.TestModality = 0; % Define a modality to be used with discrimination (1=vis,2=aud,4=ss), inactive if set to 0. All others will be detection only.
-DefaultSettings.optoProb = 1; % Probability to present an optogenetic stimulus. Ranges from 0 (no optogenetics) to 1 (all trials).
-DefaultSettings.optoAmp = 2; % Magnitude of optogenetic stimulus (V).
+DefaultSettings.optoProb = 0; % Probability to present an optogenetic stimulus. Ranges from 0 (no optogenetics) to 1 (all trials).
+DefaultSettings.optoAmp1 = 2; % Magnitude of optogenetic stimulus on line 3 (mW).
+DefaultSettings.optoAmp2 = 2; % Magnitude of optogenetic stimulus on line 4 (mW).
+DefaultSettings.optoLocation = 'A1'; % Location of optogenetic stimulation/inactivation.
 DefaultSettings.optoPeriod = 'Stimulus/Delay'; % Part of the trial where optogenetic stimulus should be presented.
 DefaultSettings.optoRight = 0.5; %Probability for occurence of an optogenetic stimulus on the right.
 DefaultSettings.optoBoth = 1; %Probability for occurence of an optogenetic stimulus on both sides. This comes after determining a single HS target.
 DefaultSettings.optoPower = 5; %Power of optogenetic light on the brain surface. This is just an indicator.
 DefaultSettings.sRate = 20000; % This is the sampling rate of the analog output module. Max rates: 2ch = 100kHz, 4ch = 50kHz, 8ch = 20kHz
 DefaultSettings.PunishSoundDur = 0; % (s) Duration of white noise punish sound when the animal makes a mistake.
+DefaultSettings.blackScreen = false; %flag to set screens to black when no visual stimulation is used. This stops the visual stim server.
+DefaultSettings.stimScreens = [3 4]; %ID number of screens that should be used for visual stimulation.
 
 % Stimulus presentation settings
 DefaultSettings.ProbRight = 0.5; %Probability for occurence of a target presentation on the right.

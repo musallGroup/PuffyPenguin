@@ -4,9 +4,12 @@
 optoDur = 0; %duration of optogenetic stimulus
 optoSide = NaN; %side to which an optogenetic stimulus gets presented. 1 = left, 2 = right.
 optoType = NaN; % time of optogenetic stimulus
+optoPower1 = NaN;
+optoPower2 = NaN;
 % (1 = Stimulus, 2 = Delay, 3 = Response, 4 = Late Stimulus (Computed from stimulus end instead of start),
 %  5 = Handle period. Starts right with stimulus onset. Use varStimOn to ensure this doesnt come up during the stimulus.)
 
+stimEvents = [stimEvents, cell(1,2)]; %add events for optogenetics at the end of stimEvents
 if rand < S.optoProb
     % determine time of opto stimulus
     if strcmpi(S.optoPeriod,'Stimulus')
@@ -22,7 +25,7 @@ if rand < S.optoProb
     elseif strcmpi(S.optoPeriod,'Response')
         optoType = 3;
     elseif strcmpi(S.optoPeriod,'LateStimulus')
-        optoType = 4;
+        optoType = bpod4;
     elseif strcmpi(S.optoPeriod,'AllTimes')
         coin = rand;
         if coin < 0.25
@@ -57,11 +60,33 @@ if rand < S.optoProb
         optoDur = S.optoDur;
     end
 
-    % create opto stim sequence
-    pulse = ones(1, round(optoDur * sRate)) .* S.optoAmp;
-    pulse(end-round(S.optoRamp * sRate)+1:end) = (1-1/round(S.optoRamp * sRate) : -1/round(S.optoRamp * sRate) : 0) .* S.optoAmp;
-    pulse(end) = 0; %make sure this goes back to 0
+    %% get control voltage for each opto channel
+    optoPower1 = ppval(S.optoFits{3}, S.optoAmp1); %recover control voltage from spline interpolation of calibration curve
+    optoPower2 = ppval(S.optoFits{4}, S.optoAmp2); %recover control voltage from spline interpolation of calibration curve
+    
+    % check if requested optogenetic power is within calibration and not too high
+    %left
+    if min(S.optoPower{3}(:,2)) > S.optoAmp1
+        warning('!!Requested LEFT optoPower (%g mW) is below calibrated values. Extend calibration to ensure accuracy!!', S.optoAmp1)
+        if optoPower1 < 0; optoPower1 = 0; end
+    elseif optoPower1 > 5
+        optoPower1 = 5;
+        warning('!!Requested LEFT optoPower (%g mW) is too high. Setting to max. value instead. Check calibration curve to stay within range!!', S.optoAmp1)
+    end
+    %right
+    if min(S.optoPower{4}(:,2)) > S.optoAmp2
+        warning('!!Requested RIGHT optoPower (%g mW) is below calibrated values. Extend calibration to ensure accuracy!!', S.optoAmp2)
+        if optoPower2 < 0; optoPower2 = 0; end
+    elseif optoPower2 > 5
+        optoPower2 = 5;
+        warning('!!Requested RIGHT optoPower (%g mW) is too high. Setting to max. value instead. Check calibration curve to stay within range!!', S.optoAmp2)
+    end
 
+    %% create opto stim sequence
+    pulse = ones(1, round(optoDur * sRate));
+    pulse(end-round(S.optoRamp * sRate)+1:end) = (1-1/round(S.optoRamp * sRate) : -1/round(S.optoRamp * sRate) : 0);
+    pulse(end) = 0; %make sure this goes back to 0
+    
     Signal(7:8,:) = zeros(2,size(Signal,2)); % make sure these channels are empty
     stimDur = size(Signal,2) / sRate; %adjust stimulus duration based on analog signal
     if optoType == 1 %find stimulus onset (stimulus period)
@@ -78,15 +103,23 @@ if rand < S.optoProb
     end
 
     if optoStart < 1; optoStart = 1; end %should not be negative
-
+    
+    pulse1 = pulse .* optoPower1;
+    pulse2 = pulse .* optoPower2;
     if optoSide == 1
-        Signal(7, optoStart : optoStart + length(pulse) - 1) = pulse; %stimulate left HS
+        Signal(7, optoStart : optoStart + length(pulse) - 1) = pulse1; %stimulate left HS
+        stimEvents{end-1} = optoStart / sRate;
     elseif optoSide == 2
-        Signal(8, optoStart : optoStart + length(pulse) - 1) = pulse; %stimulate right HS
+        Signal(8, optoStart : optoStart + length(pulse) - 1) = pulse2; %stimulate right HS
+        stimEvents{end} = optoStart / sRate;
     elseif optoSide == 3
-        Signal(7:8, optoStart : optoStart + length(pulse) - 1) = repmat(pulse,2,1); %stimulate both HS
+        Signal(7, optoStart : optoStart + length(pulse) - 1) = pulse1; %stimulate left HS
+        Signal(8, optoStart : optoStart + length(pulse) - 1) = pulse2; %stimulate right HS
+        stimEvents{end-1} = optoStart / sRate;
+        stimEvents{end} = optoStart / sRate;
     end
 end
 
 % send signal matrix to GUI
 BpodSystem.GUIData.Stimuli = Signal;
+BpodSystem.GUIData.TrialEpisodes = [S.preStimDelay+cStimOn, stimDur, cDecisionGap, 0.5];

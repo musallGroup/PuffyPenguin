@@ -9,9 +9,10 @@ end
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
 
 % close visual stim server
-if ~isempty(BpodSystem.PluginObjects.udpVisual)
+if isfield(BpodSystem.PluginObjects, 'udpVisual') && ~isempty(BpodSystem.PluginObjects.udpVisual)
     fwrite(BpodSystem.PluginObjects.udpVisual, 'Close')
 end
+sca;
 
 % stop video
 try
@@ -94,5 +95,5 @@ try
 end
 
 % close GUI
-close(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure)
-
+close(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure);
+RunProtocol('Stop');

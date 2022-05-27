@@ -3,11 +3,12 @@
 
 if length(fieldnames(RawEvents)) > 1
 
+    BpodSystem.Data.date(iTrials) = now; %current time
     BpodSystem.Data = AddTrialEvents(BpodSystem.Data,RawEvents); %collect trialdata
     BpodSystem.Data.Punished(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.HardPunish(1)); %False choice
     BpodSystem.Data.DidNotChoose(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.DidNotChoose(1)); %No choice
     BpodSystem.Data.Rewarded(iTrials) = ~isnan(BpodSystem.Data.RawEvents.Trial{1,iTrials}.States.Reward(1)); %Correct choice
-    
+
     BpodSystem.Data.stimRate(iTrials) = S.StimRate; %Stimulus rate in Hz
     BpodSystem.Data.targFrac(iTrials) = S.TargFractions(1); %fraction of used bins on target side
     BpodSystem.Data.distFrac(iTrials) = distFrac; %fraction of used bins on distractor side
@@ -22,8 +23,10 @@ if length(fieldnames(RawEvents)) > 1
     BpodSystem.Data.decisionGap(iTrials) = cDecisionGap; %duration of gap between stimulus and decision in current trial
     BpodSystem.Data.stimOn(iTrials) = cStimOn; %variability in stim onset relative to lever grab. Creates an additional baseline before stimulus events.
     BpodSystem.Data.optoSide(iTrials) = optoSide; %side to which an optogenetic stimulus gets presented. 1 = left, 2 = right.
-    BpodSystem.Data.optoType(iTrials) = optoType; %%time of optogenetic stimulus (1 = Stimulus, 2 = Delay')
-    BpodSystem.Data.optoDur(iTrials) = optoDur; %%duration of optogenetic stimulus (s)
+    BpodSystem.Data.optoType(iTrials) = optoType; %time of optogenetic stimulus (1 = Stimulus, 2 = Delay')
+    BpodSystem.Data.optoDur(iTrials) = optoDur; %duration of optogenetic stimulus (s)
+    BpodSystem.Data.optoPower1(iTrials) = optoPower1; %control voltage on LED/laser 1
+    BpodSystem.Data.optoPower2(iTrials) = optoPower2; %control voltage on LED/laser 2
 
     if correctSide == 1
         BpodSystem.Data.StimSideValues([1,2],iTrials) =  [max(cellfun(@length, stimEvents(1:2:6))), max(cellfun(@length, stimEvents(2:2:6)))];
@@ -32,6 +35,7 @@ if length(fieldnames(RawEvents)) > 1
     end
     
     % get ambient data if present
+    try
     if ~isempty(S.ambientPort)
         vals = AB.getMeasurements;
         cFields = fieldnames(vals);
@@ -39,6 +43,7 @@ if length(fieldnames(RawEvents)) > 1
             BpodSystem.Data.(cFields{iFields})(iTrials) = vals.(cFields{iFields});
         end
     end
+    catch; end
     
     % get wheel data if present
     if ~isempty(S.rotaryEncoderPort)

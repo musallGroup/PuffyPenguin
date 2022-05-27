@@ -175,6 +175,8 @@ float stdTouchVals[4]; // stand deviation values for the four touch lines (left 
 float touchVal = 0; // temporary variable for usb communication
 long int sampleCnt[] = {0, 0}; // counter for samples during touch adjustment
 unsigned long adjustClocker = millis(); // timer for re-adjustment of touch lines
+float runningAvg[2] = { 0, 0 }; // current values for the four touch lines (left spout, right spout, left, handle, right handle)
+float avgWeight = 5000; // weight of past values when converving to a constant offset. Higher values mean that traces take more time to go back to zero.
 
 // Other variables
 bool midRead = false;
@@ -536,6 +538,12 @@ void loop() {
   touchData[2] = (touchData[2] * 15 + touchRead(LEVERSENSOR_L)) / 16;
   touchData[3] = (touchData[3] * 15 + touchRead(LEVERSENSOR_R)) / 16;
 
+  runningAvg[0] = runningAvg[0] + ((touchData[0] - runningAvg[0]) / avgWeight);
+  runningAvg[1] = runningAvg[1] + ((touchData[1] - runningAvg[1]) / avgWeight);
+
+  touchData[0] = touchData[0] - runningAvg[0];
+  touchData[1] = touchData[1] - runningAvg[1];
+   
   // recompute estimates for mean and standard deviation in each touch line and updates thresholds accordingly
   if (touchAdjust) {
     ++sampleCnt[0];
@@ -846,18 +854,25 @@ void loop() {
     }
   }
 
-
-  if (Serial && ((millis() - usbClocker) >= usbRate)) {
+  // check if serial communication is open and try to open otherwise
+  if (!Serial) {
+    Serial.begin(9600);
+  }
+  
+  if (((millis() - usbClocker) >= usbRate)) {
     usbClocker = millis();
     ///////////////////////////////////////////////////
 
     // send touch data for serial monitor
     for (int i = 0; i < 2; i++) { // send some feedback about touch events
 
-      touchVal = touchData[i] + (i * 1500); //((touchData[i] / pow(2,16)) * pow(2,8) + (i*5)); // convert value from 16 to 8 bit number
+      touchVal = touchData[i] + (i * 500); //((touchData[i] / pow(2,16)) * pow(2,8) + (i*5)); // convert value from 16 to 8 bit number
       Serial.print(int(touchVal)); Serial.print(",");
-
-      touchVal = (meanTouchVals[i] + (stdTouchVals[i] * touchThresh)) + (i * 1500); //(((meanTouchVals[i]+(stdTouchVals[i]*touchThresh))/ pow(2,16)) * pow(2,8) + (i*5)); // convert bound from 16 to 8 bit number
+      if (!touchAdjust){
+        touchVal = (meanTouchVals[i] + (stdTouchVals[i] * touchThresh)) + (i * 500); //(((meanTouchVals[i]+(stdTouchVals[i]*touchThresh))/ pow(2,16)) * pow(2,8) + (i*5)); // convert bound from 16 to 8 bit number
+      }
+      else {touchVal = 0;}
+      
       Serial.print(int(touchVal)); Serial.print(",");
     }
     Serial.println();

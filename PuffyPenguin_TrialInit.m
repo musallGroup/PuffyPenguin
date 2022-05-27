@@ -16,7 +16,7 @@ if iTrials == 1 || PrevStimLoudness ~= S.StimLoudness
     RewardSound = zeros(1,sRate*0.02); 
     RewardSound(1:int32(sRate*0.01)) = 1; %20ms click sound for reward
     RewardSound = RewardSound * S.StimLoudness;    
-    trialStartSound = GenerateSineWave(sRate, 4000, 0.05) * S.StimLoudness; %0.05s pure tone to indicate start of the current trial
+    trialStartSound = GenerateSineWave(sRate, 4000, 0.05) * (S.StimLoudness/20); %0.05s pure tone to indicate start of the current trial
     
     W.loadWaveform(10,trialStartSound); % load signal to waveform object
     W.loadWaveform(11,RewardSound); % load signal to waveform object

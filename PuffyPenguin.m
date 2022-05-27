@@ -11,7 +11,7 @@ figure(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure); %bring to foreg
 while BpodSystem.Status.PuffyPenguinPause
     drawnow; pause(0.03);
 end
-    
+
 %% Start saving labcams if connected
 if exist('udplabcams','var')
     fwrite(udplabcams,'softtrigger=0')
@@ -38,14 +38,17 @@ for iTrials = 1 : maxTrials
         end
     end
     
-    %update trial counter
-    BpodSystem.Data.cTrial = iTrials;
-    
+    %check bpod pause button
+    HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
+        
     % only run this code if protocol is still active
     if BpodSystem.Status.BeingUsed && ~BpodSystem.Status.PuffyPenguinExit
         
         tic % single trial timer
-        
+
+        %update trial counter
+        BpodSystem.Data.cTrial = iTrials;
+    
         %% run main scripts to prepare current trial
         PuffyPenguin_TrialInit %check basic variables (timing etc for current stimulus)
         PuffyPenguin_StimulusInit %set up simuli for different modalities/sides etc and generate analog waveforms
@@ -63,7 +66,6 @@ for iTrials = 1 : maxTrials
         
         BpodSystem.SerialPort.read(BpodSystem.SerialPort.bytesAvailable, 'uint8'); %remove all bytes from serial port        
         setMotorPositions;
-        
         
         %% check for weird bytes. This maybe happens if the touchshaker sends a lot of false lick bytes? Broken cable?
         BpodSystem.Data.weirdBytes = false;
@@ -83,7 +85,8 @@ for iTrials = 1 : maxTrials
             fwrite(udplabcams,sprintf('log=trial_start:%d',iTrials));
         end
         
-        RawEvents = RunStateMachine; % run state matrix
+        % run state matrix
+        RawEvents = RunStateMachine; 
         
         % update labcams counter
         if exist('udplabcams','var')
@@ -98,16 +101,13 @@ for iTrials = 1 : maxTrials
             disp('Could not update performance plots.')
         end
         toc;disp('==============================================')
-        % send the motors to zero before starting another trial
         
-        teensyWrite([71 1 '0' 1 '0']); % move spouts to zero;
-        HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
-        if BpodSystem.Status.PuffyPenguinExit
-            RunProtocol('Stop')
-        end
+        % move spouts to zero;
+        teensyWrite([71 1 '0' 1 '0']); 
+
     else  %stop code if stop button is pressed and close figures
-        PuffyPenguin_checkPerformance
         PuffyPenguin_CloseSession
+        PuffyPenguin_checkPerformance
         break;
     end
 end

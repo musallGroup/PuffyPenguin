@@ -4,6 +4,7 @@ BpodSystem.ProtocolSettings.triggerScanbox = false;
 BpodSystem.Data.byteLoss = 0; %counter for cases when the teensy didn't send a response byte
 BpodSystem.SoftCodeHandlerFunction = 'PuffyPenguin_softCodeHandler';
 BpodSystem.Data.Rewarded = logical([]); %needed for GUI to work in first trial
+BpodSystem.Path.visualPath = [fullfile(fileparts(BpodSystem.Path.DataFolder(1:end-1)), 'visualStim', 'Stimulus_frames'),filesep];
 
 %% Load default settings and update with pre-defined settings if required
 defaultFieldParamVals = struct2cell(DefaultSettings);
@@ -62,8 +63,8 @@ W.TriggerMode = 'Master'; %output can be interrupted by new stimulus triggers
 W.LoopDuration(1:4) = 0; %keep on for a up to 10 minutes
 W.SamplingRate = BpodSystem.ProtocolSettings.sRate; %adjust sampling rate
 RewardSound = zeros(1,BpodSystem.ProtocolSettings.sRate*0.02);
-RewardSound(1:int32(BpodSystem.ProtocolSettings.sRate*0.01)) = 1; %20ms click sound for reward
-RewardSound = RewardSound*0.5;
+RewardSound(1:int32(BpodSystem.ProtocolSettings.sRate*0.01)) = 1; %10ms click sound for reward
+RewardSound = RewardSound*5;
 W.loadWaveform(11,RewardSound); % load signal to waveform object
 W.TriggerProfiles(11, 1:2) = 11; %this will play waveform 11 (rewardSound) on ch1+2
 
@@ -103,14 +104,10 @@ while isempty(res)
 end
 BpodSystem.ProtocolSettings.capacitiveTouchThresholds = res;
 
-%move spouts to inner position
+%set spout speed
 val = BpodSystem.ProtocolSettings.SpoutSpeed; %SpoutSpeed
-teensyWrite([73 length(num2str(val)) num2str(val)]); %set spout speed
+teensyWrite([73 length(num2str(val)) num2str(val)]);
      
-ls = num2str(BpodSystem.ProtocolSettings.lInnerLim);
-rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
-teensyWrite([71 length(ls)  ls length(rs)  rs]);
-
        
 %% check for analog input module
 clear A
@@ -141,6 +138,28 @@ else
     A.startReportingEvents();
 end
 
+%% find stim screens
+%find screens
+% screenNumber = Screen('Screens'); % Draw to the external screen if avaliable
+% screenNumber(screenNumber == 0) = [];
+% Screen('Preference', 'Verbosity', 0);
+% Screen('Preference', 'SkipSyncTests',1);
+% Screen('Preference', 'VisualDebugLevel',0);
+% 
+% for x = screenNumber
+%     window = Screen('OpenWindow', x, 0); %open ptb window and save handle in pSettings
+%     pause(0.1)
+% 
+%     for y = 1 : 2
+%         Screen('FillRect', window, 255);
+%         Screen('Flip', window);
+%         pause(0.1)
+%         Screen('FillRect', window, 0);
+%         Screen('Flip', window);
+%         pause(0.1)
+%     end
+%     sca
+% end
 
 %% check for rotary encoder module
 clear R
@@ -214,6 +233,11 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
     BpodSystem.GUIHandles.PuffyPenguin.getSettingsFromBpod();
     BpodSystem.GUIHandles.PuffyPenguin.init_plots();
     
+    %move spouts to inner position
+    ls = num2str(BpodSystem.ProtocolSettings.lInnerLim);
+    rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
+    teensyWrite([71 length(ls)  ls length(rs)  rs]);
+    
 	%% initialize communication with labcams to get videos
     if isfield(BpodSystem.ProtocolSettings,'labcamsAddress')
         if ~isempty(BpodSystem.ProtocolSettings.labcamsAddress)
@@ -275,40 +299,63 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
             end
         end
     end
-    
-    %% initialize communication with visual stimulation server
-    BpodSystem.Path.visualPath = [fullfile(fileparts(BpodSystem.Path.DataFolder(1:end-1)), 'visualStim', 'Stimulus_frames'),filesep];
-    
-    batPath = [BpodSystem.Path.ProtocolFolder, BpodSystem.ProtocolSettings.paradigmName, filesep, 'VisualStimulusClient.bat'];
-    
-    system(['"' batPath '" &']); %start visual stimulus client
-    pause(3);
+end
 
-    tmp = strsplit(BpodSystem.ProtocolSettings.visualAddress,':');
-    udpAddress = tmp{1};
-    udpPort = str2num(tmp{2});
-    BpodSystem.PluginObjects.udpVisual = udp(udpAddress,udpPort);
-    BpodSystem.PluginObjects.udpVisual.TimeOut = 1;
-    fopen(BpodSystem.PluginObjects.udpVisual);
+%% check output power from LEDs/Lasers for optogenetics
+basePath = fileparts(BpodSystem.Path.ProtocolFolder(1:end-1));
+calFile = 'OptogenticStimPower.txt';
+calPath = fullfile(basePath, 'calibrations',calFile);
+
+cChan = [];
+optoPower = cell(1,4);
+if exist(calPath, 'file')
     
-     % check if stim server is connected
-     tic
-     while BpodSystem.PluginObjects.udpVisual.BytesAvailable == 0 && toc <10
-         fwrite(BpodSystem.PluginObjects.udpVisual,'Ping'); pause(1);
-         if BpodSystem.PluginObjects.udpVisual.BytesAvailable > 0
-             fgetl(BpodSystem.PluginObjects.udpVisual);
-             disp(' -> Stim server connected.');
-             break
-         end
-     end
-     
-     fwrite(BpodSystem.PluginObjects.udpVisual,'Ping'); pause(0.1);
-     if BpodSystem.PluginObjects.udpVisual.BytesAvailable > 0
-         fgetl(BpodSystem.PluginObjects.udpVisual);
-         disp(' -> Stim server connected.');
-     else
-         warning('Could not establish connection to visual stimulation server. Visual stimuli wont be available.');
-     end
+    fID = fopen(calPath);
+    while true
+        cLine = fgetl(fID);
+        
+        if cLine == -1
+            fclose(fID);
+            break
+        end
+        
+        if isempty(cLine); cChan = []; pwrCnt = 0; end
+        if isempty(cChan) % check for channel - usually 3 or 4
+            if contains(cLine, 'Channel')
+                a = textscan(cLine, '%s%d');
+                cChan = a{2}(1);
+            end
+            
+        else % check for power values
+            a = textscan(cLine, '%f%s%s%f%s');
+            cVals = NaN(1,2);
+            for x = 1 : length(a)
+                if strcmpi(a{x}, 'V') %this is the control voltage, get value from preceeding number
+                    cVals(1) = a{x-1}(1);
+                elseif strcmpi(a{x}, 'mW') %this is the output in mW, get value from preceeding number
+                    cVals(2) = a{x-1}(1);
+                end
+            end
+            
+            % add values to array
+            if ~any(isnan(cVals))
+                if isempty(optoPower{cChan})
+                    optoPower{cChan} = cVals;
+                else
+                    optoPower{cChan} = [optoPower{cChan}; cVals];
+                end
+            end
+        end
+    end
+end
+BpodSystem.ProtocolSettings.optoPower = optoPower;
+
+% do linear fit for existing channels
+BpodSystem.ProtocolSettings.optoFits = cell(4,1);
+for x = 1 : length(optoPower)
+    if ~isempty(optoPower{x})
+        BpodSystem.ProtocolSettings.optoFits{x} = spline(optoPower{x}(:,2),optoPower{x}(:,1));
+    end
 end
 
 %% Initialize some arrays

@@ -69,13 +69,16 @@ class MyClient:
 
 if __name__ == '__main__':
     root_path = r'E:\Bpod Local\visualStim'
-    left_monitor_id = 3
-    right_monitor_id = 2
+    left_monitor_id = 2
+    right_monitor_id = 3
 
     # start TCP-client
     client = MyClient()
     gray_path_r = path.join(root_path, 'Stimulus_frames', 'gray_r.png')
     gray_path_l = path.join(root_path, 'Stimulus_frames', 'gray_l.png')
+
+    black_path_r = path.join(root_path, 'Stimulus_frames', 'black_r.png')
+    black_path_l = path.join(root_path, 'Stimulus_frames', 'black_l.png')
 
     # open the windows
     vis_stim_l = VisualStimulus(screen=left_monitor_id, screen_size=(1920, 1080), wait_blanking=False, fullscr=True)
@@ -98,31 +101,46 @@ if __name__ == '__main__':
             vis_stim_r.draw()
             vis_stim_l.flip()
             vis_stim_r.flip()
-        else:
-            data = data.decode().split(';')
-            left_folder = sort(glob(path.join(data[0], '*.png')))
-            right_folder = sort(glob(path.join(data[1], '*.png')))
-            st = time()
-            while True:
-                frame_id = round((time() - st) * 60)  # 60 Hz
-                if frame_id < len(left_folder):  # 180
-                    vis_stim_l.change_image(left_folder[frame_id])
-                else:
-                    vis_stim_l.change_image(gray_path_l)
-                #
 
-                if frame_id < len(right_folder):  # 180
-                    vis_stim_r.change_image(right_folder[frame_id])
-                else:
-                    vis_stim_r.change_image(gray_path_r)
-                #
+        else:
+            print(data)
+
+            if data == b'Black':
+                print(data)
+
+                vis_stim_l.change_image(black_path_l)
+                vis_stim_r.change_image(black_path_r)
 
                 vis_stim_l.draw()
                 vis_stim_r.draw()
                 vis_stim_l.flip()
                 vis_stim_r.flip()
-                if frame_id >= len(left_folder) & frame_id >= len(right_folder):
-                    break
+
+            else:
+                data = data.decode().split(';')
+                left_folder = sort(glob(path.join(data[0], '*.png')))
+                right_folder = sort(glob(path.join(data[1], '*.png')))
+                st = time()
+                while True:
+                    frame_id = round((time() - st) * 60)  # 60 Hz
+                    if frame_id < len(left_folder):  # 180
+                        vis_stim_l.change_image(left_folder[frame_id])
+                    else:
+                        vis_stim_l.change_image(gray_path_l)
+                    #
+
+                    if frame_id < len(right_folder):  # 180
+                        vis_stim_r.change_image(right_folder[frame_id])
+                    else:
+                        vis_stim_r.change_image(gray_path_r)
+                    #
+
+                    vis_stim_l.draw()
+                    vis_stim_r.draw()
+                    vis_stim_l.flip()
+                    vis_stim_r.flip()
+                    if frame_id >= len(left_folder) & frame_id >= len(right_folder):
+                        break
                 #
             #
 

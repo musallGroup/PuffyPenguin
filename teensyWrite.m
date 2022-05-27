@@ -1,4 +1,4 @@
-function [res] = teensyWrite(bytes, stopParadigm)
+function [res] = teensyWrite(bytes)
 % function to check the handshake with a teensy module. Module should run
 % the TouchShaker code and sent byte 14 or 15 in response to receiving a command
 % through bpod. Other bytes should be ignored.
@@ -30,6 +30,23 @@ if ~BpodSystem.Status.InStateMatrix
     BpodSystem.StopModuleRelay('TouchShaker1');
 else
    disp('This only works when the state machine is not running.') 
+end
+
+try
+    if int8(bytes(1)) == 71
+       
+        idx1 = 2 + (1:int8(bytes(2)));
+        val1 = str2num(bytes(idx1));
+        
+        idx2 = idx1(end)+1 + (1:int8(bytes(idx1(end)+1)));
+        val2 = str2num(bytes(idx1));
+        
+        BpodSystem.GUIHandles.PuffyPenguin.LeftSpoutEdit.Value = val1;
+        BpodSystem.GUIHandles.PuffyPenguin.RightSpoutEdit.Value = val2;
+        BpodSystem.GUIHandles.PuffyPenguin.SpoutLeftKnob.Value = val1;
+        BpodSystem.GUIHandles.PuffyPenguin.SpoutRightKnob.Value = val2;
+
+    end
 end
 %     
 % %check 2nd input
