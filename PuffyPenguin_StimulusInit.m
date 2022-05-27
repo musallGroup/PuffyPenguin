@@ -195,6 +195,9 @@ checker = true; %make sure there is an unequal amount of stimuli on both sides
 while checker
     
     [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
+    if isempty(Signal)
+        Signal = zeros(8,2);
+    end
     cellfun(@sum,binSeq)
     checker = false;
     
