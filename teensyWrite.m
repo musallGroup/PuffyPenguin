@@ -39,7 +39,7 @@ try
         val1 = str2num(bytes(idx1));
         
         idx2 = idx1(end)+1 + (1:int8(bytes(idx1(end)+1)));
-        val2 = str2num(bytes(idx1));
+        val2 = str2num(bytes(idx2));
         
         BpodSystem.GUIHandles.PuffyPenguin.LeftSpoutEdit.Value = val1;
         BpodSystem.GUIHandles.PuffyPenguin.RightSpoutEdit.Value = val2;
