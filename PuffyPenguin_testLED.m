@@ -31,4 +31,9 @@ for iPower = 1 : length(ledPower)
     disp(['Current power: ' num2str(ledPower(iPower)) 'V on channel ' num2str(chanID)]);
     pause(2+duration);
 end
+
+W.loadWaveform(10,zeros(1, 10));
+W.TriggerProfiles(10, chanID) = 10; %this will generate a square wave on channel 'chanID'
+W.play(10); %make sure LED returns to zero
+pause(0.1);
 clear W
