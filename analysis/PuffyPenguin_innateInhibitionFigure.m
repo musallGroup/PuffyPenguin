@@ -29,7 +29,11 @@ for x = 1 : length(groupnames)
         
         [normPerf{x}(2, iAnimals), normPerf{x}(3, iAnimals)] = Behavior_wilsonError(normCnt, sum(normIdx)); %error
         [optoPerf{x}(2, iAnimals), optoPerf{x}(3, iAnimals)] = Behavior_wilsonError(optoCnt, sum(optoIdx)); %error
-
+        
+        % keep track of number of trials in each condition/mouse
+        normPerf{x}(4,iAnimals) = normCnt;
+        optoPerf{x}(4,iAnimals) = optoCnt;
+        
     end
 end
 
@@ -52,7 +56,7 @@ for iGroups = 1 : length(groupnames)
     
     nhline(0.5, '--', 'lineWidth',4, 'Color', [0.5 0.5 0.5]);
     axis square;  
-%     ylim([0.45 1]);
+    ylim([0.45 1]);
     title(groupnames{iGroups});
 
     grid on; 

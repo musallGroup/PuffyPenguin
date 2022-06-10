@@ -6,6 +6,7 @@ function [Performance,bhv] = PuffyPenguin_optoStim(Animal,cPath)
 if ~strcmpi(cPath(end),filesep)
     cPath = [cPath filesep];
 end
+minTrials = 10;
 
 %% get files and date for each recording
 paradigm = 'PuffyPenguin';
@@ -27,7 +28,7 @@ for iFiles = 1:size(Files,1)
     load(fullfile(Files(iFiles).folder, Files(iFiles).name)); %load current bhv file
     
     %this determines if a session is used or not
-    useData = sum(SessionData.optoDur > 0 & ~SessionData.DidNotChoose) > 20 && isfield(SessionData.TrialSettings(1), 'optoLocation'); %if file contains some optogenetic trials
+    useData = sum(SessionData.optoDur > 0 & ~SessionData.DidNotChoose) > minTrials && isfield(SessionData.TrialSettings(1), 'optoLocation'); %if file contains some optogenetic trials
     
     normIdx = SessionData.optoDur == 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
     Performance(iFiles, 1) = sum(SessionData.Rewarded(normIdx)) / sum(normIdx);
