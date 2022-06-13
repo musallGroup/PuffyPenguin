@@ -6,7 +6,7 @@ function [Performance,bhv] = PuffyPenguin_optoStim(Animal,cPath)
 if ~strcmpi(cPath(end),filesep)
     cPath = [cPath filesep];
 end
-minTrials = 10;
+minTrials = 5;
 
 %% get files and date for each recording
 paradigm = 'PuffyPenguin';

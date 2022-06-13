@@ -51,7 +51,12 @@ for iGroups = 1 : length(groupnames)
     ax = h.Children(1); %current axis
     xlim(ax, [cLine(1).XData(1)-0.5 cLine(1).XData(end)+0.5]);
     ax.XTick = 1:nrMice;
-    ax.XTickLabel = bhv{iGroups}.Animals;
+    
+    xLabels = [];
+    for x = 1 : nrMice
+        xLabels{x} = [bhv{iGroups}.Animals{x} ' (' num2str(oPerf(4,x)) ')'];
+    end
+    ax.XTickLabel = xLabels;
     ax.XTickLabelRotation = 45;
     
     nhline(0.5, '--', 'lineWidth',4, 'Color', [0.5 0.5 0.5]);
