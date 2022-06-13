@@ -7,6 +7,7 @@ if ~strcmpi(cPath(end),filesep)
     cPath = [cPath filesep];
 end
 minTrials = 5;
+minPerformance = 0.6% %minimum performance to be counted
 
 %% get files and date for each recording
 paradigm = 'PuffyPenguin';
@@ -32,6 +33,8 @@ for iFiles = 1:size(Files,1)
     
     normIdx = SessionData.optoDur == 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
     Performance(iFiles, 1) = sum(SessionData.Rewarded(normIdx)) / sum(normIdx);
+    
+    useData = Performance(iFiles, 1) > minPerformance && useData;
 
     optoIdx = SessionData.optoDur > 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
     Performance(iFiles, 2) = sum(SessionData.Rewarded(optoIdx)) / sum(optoIdx);
