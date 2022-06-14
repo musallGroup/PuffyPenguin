@@ -7,7 +7,7 @@ if ~strcmpi(cPath(end),filesep)
     cPath = [cPath filesep];
 end
 minTrials = 5;
-minPerformance = 0.6% %minimum performance to be counted
+minPerformance = 0.6; % %minimum performance to be counted
 
 %% get files and date for each recording
 paradigm = 'PuffyPenguin';
