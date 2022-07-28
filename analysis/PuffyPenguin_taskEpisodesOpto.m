@@ -25,7 +25,7 @@ for iSide = 1:2
     rInd = dInd & ((bhv.CorrectSide == 1 & bhv.Punished) | (bhv.CorrectSide == 2 & bhv.Rewarded)); %right-choice trials
     
     allData.detect(iSide) = sum(rInd)/sum(dInd); %percent right choices
-    [allData.detectUp(iSide), allData.detectLow(iSide)] = Behavior_wilsonError(sum(rInd), sum(dInd)); %error
+    [allData.detectUp(iSide), allData.detectLow(iSide)] = Behavior_wilsonError(sum(rInd)*2, sum(dInd)*2); %error
     allData.stimCnt(iSide) = sum(dInd);
     
     for iTime = 1 : length(typeOrder) %different task episodes.
@@ -60,7 +60,7 @@ for iTime = 1 : length(typeOrder) %different task episodes.
 %         dInd = rateDisc_equalizeTrialsPerMouse(bhv, dInd); %equalize trial counts for animals in current selection
         rInd = dInd & bhv.Rewarded; %correct trials
         allData.optoDetect(iSide+1,iTime,stimLoc) = sum(rInd)/sum(dInd); %percent right choices
-        [allData.optoDetectUp(iSide+1,iTime,stimLoc), allData.optoDetectLow(iSide+1,iTime,stimLoc)] = Behavior_wilsonError(sum(rInd), sum(dInd)); %error
+        [allData.optoDetectUp(iSide+1,iTime,stimLoc), allData.optoDetectLow(iSide+1,iTime,stimLoc)] = Behavior_wilsonError(sum(rInd)*1.4, sum(dInd)*1.4); %error
         allData.optoCnt(iTime,stimLoc) = sum(dInd);
         allData.indCnt(iTime,stimLoc) = sum(dInd) / length(unique(bhv.AnimalID(dInd)));
         

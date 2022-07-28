@@ -2,13 +2,9 @@
 % only use mice that also have parietal data
 % bhv = selectBehaviorTrials(bhv,ismember(bhv.AnimalID, unique(bhv.AnimalID(bhv.stimLocation == 2))));
 
-xLabels =  {'EarlyStim' 'LateStim' 'Delay' 'Response'};
-fiberLocations = { 'A1' 'ALM'};
-fiberColors = {[0 0 1] [1 0 0]};
-
-groupnames = {'EMX' 'CStr'};
+fiberLocations = {'ALM'};
+groupnames = {'CStr' 'EMX'};
 cPath = '\\naskampa\data\BpodBehavior\';
-optoType = [1 4 2 3];
 
 h = figure('name', groupnames{x}, 'renderer', 'painters');
 

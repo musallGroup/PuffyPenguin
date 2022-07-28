@@ -1,4 +1,4 @@
-function bhv = PuffyPenguin_loadDetectionBhv(Animals, cPath, newRun)
+function bhv = PuffyPenguin_loadDetectionBhv(Animals, cPath, newRun, minPerformance)
 
 if ~exist('cPath', 'var') || isempty(cPath)
     cPath = '\\grid-hs\churchland_nlsas_data\\data\Behavior_Simon\';
@@ -6,18 +6,9 @@ if ~exist('cPath', 'var') || isempty(cPath)
 end
 
 if strcmpi(Animals, 'EMX')
-    Animals = {'2471' '2472'};
+    Animals = {'2471' '2472' '2463' '2464'};
 elseif strcmpi(Animals, 'CStr')
-    Animals = {'2480' '2481'};
-elseif strcmpi(Animals, 'Plexin')
-%     Animals = {'Plex05' 'Plex06' 'Plex07' 'Plex08' 'Plex68' 'Plex69' 'Plex72' 'Plex73'};
-    Animals = {'Plex05' 'Plex06' 'Plex07' 'Plex08' 'Plex68' 'Plex72' 'Plex73'};
-elseif strcmpi(Animals, 'CSP')
-%     Animals = {'CSP8' 'CSP20' 'CSP24' 'CSP25'};
-%     Animals = {'CSP7' 'CSP8' 'CSP20' 'CSP24' 'CSP25'};
-    Animals = {'CSP7' 'CSP8' 'CSP20' 'CSP24'};
-elseif strcmpi(Animals, 'Control')
-    Animals = {'CTP3' 'CTP7'};
+    Animals = {'2480' '2481' '2484' '2485'};
 end
     
 if ~exist('newRun', 'var')
@@ -36,7 +27,7 @@ end
 if newRun
     bhv = [];
     for iAnimals = 1:length(Animals)
-        [~, cBhv] = PuffyPenguin_optoStim(Animals{iAnimals},cPath);
+        [~, cBhv] = PuffyPenguin_optoStimAudio(Animals{iAnimals},cPath, minPerformance);
         
         if ~isempty(cBhv)
             cBhv.AnimalID = ones(1, length(cBhv.Rewarded)) * iAnimals;
