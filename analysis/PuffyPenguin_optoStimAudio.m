@@ -42,10 +42,18 @@ for iFiles = 1:size(Files,1)
 
     if useData
         Cnt = Cnt + 1;
-        
+    
         %% combine into one larger array
+        % hang on to information from the settings we would like to keep
         SessionData.optoLocation = {SessionData.TrialSettings.optoLocation};
+        SessionData.optoAmp1 = [SessionData.TrialSettings.optoAmp1];
+        SessionData.optoAmp2 = [SessionData.TrialSettings.optoAmp2];
         SessionData.SessionNr = repmat(Cnt,1,SessionData.nTrials); %tag all trials in current dataset with session nr
+                
+        %remove very large fields to keep the structure from becoming too large
+        SessionData = rmfield(SessionData,'stimEvents');
+        SessionData = rmfield(SessionData,'TrialSettings');
+        
         bhv = appendBehavior(bhv,SessionData); %append into larger array
     end
 end

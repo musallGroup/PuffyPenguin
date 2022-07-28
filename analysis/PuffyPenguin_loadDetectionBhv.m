@@ -8,6 +8,7 @@ end
 if strcmpi(Animals, 'EMX')
     Animals = {'2471' '2472' '2463' '2464'};
 elseif strcmpi(Animals, 'CStr')
+%     Animals = {'2480'};
     Animals = {'2480' '2481' '2484' '2485'};
 end
     
@@ -41,10 +42,6 @@ if newRun
     if ~exist([cPath 'PuffyPenguin' filesep 'MergedData' filesep], 'dir')
         mkdir([cPath 'PuffyPenguin' filesep 'MergedData' filesep]);
     end
-    
-    %remove very large fields and save to file
-    bhv = rmfield(bhv,'stimEvents');
-    bhv = rmfield(bhv,'TrialSettings');
     save([cPath 'PuffyPenguin' filesep 'MergedData' filesep 'optoDetect_' Animals{:}], 'bhv', '-v7.3')
 end
 

@@ -37,6 +37,7 @@ ArCOM Serial1COM(Serial1); // UART serial port
 unsigned long clocker = millis();
 unsigned long stimClocker = millis();
 unsigned long trialClocker = millis();
+unsigned long pinchClocker = millis();
 int FSMheader = 0;
 const int sRateLicks = 5;  // This is the minimum duration of lick events that are send to bpod.
 const int sRateLever = 10; // This is the number of ms for outputs to be during levertouch. Signal remains live until 'sRateLever' ms after the last contact.
@@ -68,6 +69,9 @@ const int sRateLever = 10; // This is the number of ms for outputs to be during 
 #define PIN_LEVERDIR_L 10
 #define PIN_LEVERSTEP_R 11
 #define PIN_LEVERDIR_R 12
+// Pins for pinch valves
+#define PIN_PINCH_L 19
+#define PIN_PINCH_R 20
 
 /* #################################################
   ########### UART/BPOD COMMUNICATION ################
@@ -76,6 +80,10 @@ const int sRateLever = 10; // This is the number of ms for outputs to be during 
 // inputs
 #define MODULE_INFO 255 // byte to return module info
 #define HWRESET 128
+#define CLOSE_PINCH_L 50 // identifier to close left pinch valve
+#define CLOSE_PINCH_R 51 // identifier to close right pinch valve
+#define OPEN_PINCH_L 52 // identifier to open left pinch valve
+#define OPEN_PINCH_R 53 // identifier to open right pinch valve
 #define START_TRIAL 70 // identifier to start trial, provides limit for wheel motion and servo movement
 #define ADJUST_SPOUTES 71 // identifier to change spout positions
 #define ADJUST_LEVER 72 // identifier to change lever positions
@@ -150,6 +158,7 @@ int touchChangeInc = 2; // step size when increasing/decreasing touch thresholds
 // flags for current servo states. Required to control servo speed
 bool stimTrigger = false; // flag to indicate that stim trigger is produced
 bool trialTrigger = false; // flag to indicate that trial trigger is produced
+bool pinchTrigger = false; // flag to indicate that pinch valve trigger for left or right valve is produced
 bool spoutMoves = false; // flag to indicate that spouts are in motion
 bool lSpoutMovesIn = false; // flag to indicate that spout is moving to inward position
 bool lSpoutMovesOut = true; // flag to indicate that spout is moving to outward position
@@ -190,6 +199,7 @@ bool findLeverOut[2] = {true, true}; // flag that stepper motors are being moved
 int stepPulse = 10; // duration of stepper pulse in microseconds
 int stimDur = 100; // duration of stimulus trigger in ms
 int trialDur = 50; // duration of trial trigger in ms
+int maxPinchDur = 10000; // maximal opening time of pinch valves in ms
 float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.
 
@@ -221,7 +231,9 @@ void setup() {
   // Set pin modes for digital output lines
   pinMode(PIN_STIMTRIG, OUTPUT);
   pinMode(PIN_TRIALTRIG, OUTPUT);
-
+  pinMode(PIN_PINCH_L, OUTPUT);
+  pinMode(PIN_PINCH_R, OUTPUT);
+  
   //pinMode(PIN_CAMTIMER, OUTPUT);
   //analogWriteFrequency(PIN_CAMTIMER, camTrigRate);
   //analogWrite(PIN_CAMTIMER, 128); // set to 50% duty cycle
@@ -457,13 +469,34 @@ void serialEvent1() {
         stimTrigger = true;
         stimClocker = millis();
         digitalWriteFast(PIN_STIMTRIG, HIGH); // set stimulus trigger to high
-
         Serial1.write(OK);
         break;
     case MAKE_TRIALTRIGGER:
         trialTrigger = true;
         trialClocker = millis();
         digitalWriteFast(PIN_TRIALTRIG, HIGH); // set trial trigger to high
+        Serial1.write(OK);
+        break;
+    case CLOSE_PINCH_L:
+        pinchTrigger = true;
+        pinchClocker = millis();
+        digitalWriteFast(PIN_PINCH_L, HIGH); // set left pinch trigger to high
+        Serial1.write(OK);
+        break;
+    case CLOSE_PINCH_R:
+        pinchTrigger = true;
+        pinchClocker = millis();
+        digitalWriteFast(PIN_PINCH_R, HIGH); // set right pinch trigger to high
+        Serial1.write(OK);
+        break;
+    case OPEN_PINCH_L:
+        pinchTrigger = false;
+        digitalWriteFast(PIN_PINCH_L, LOW); // set left pinch trigger to low
+        Serial1.write(OK);
+        break;
+    case OPEN_PINCH_R:
+        pinchTrigger = false;
+        digitalWriteFast(PIN_PINCH_R, LOW); // set right pinch trigger to low
         Serial1.write(OK);
         break;
     case INCREASE_SPOUTTHRESH_L: // increase threshold
@@ -528,6 +561,15 @@ void loop() {
     if ((millis() - trialClocker) > trialDur) {  // done with trial trigger
       digitalWriteFast(PIN_TRIALTRIG, LOW); // set trial trigger to low
       trialTrigger = false;
+    }
+  }
+
+  // check pinch valves
+  if (pinchTrigger) {
+    if ((millis() - pinchClocker) > maxPinchDur) {  // check if maximal pinch closure time is reached
+      digitalWriteFast(PIN_PINCH_L, LOW); // open both pinch valves
+      digitalWriteFast(PIN_PINCH_R, LOW); // open both pinch valves
+      pinchTrigger = false;
     }
   }
 
