@@ -1,11 +1,11 @@
 %% compute detection performance during innate task and optogenetic stimulation
 
 xLabels =  {'EarlyStim' 'LateStim' 'Delay' 'Response'};
-fiberLocations = {'A1' 'ALM'};
+fiberLocations = { 'ALM'};
 fiberColors = {[0 0 1] [1 0 0]};
 
-groupnames = {'CStr', 'EMX'};
-cPath = '\\naskampa\data\BpodBehavior\';
+groupnames = {'EMX'};
+cPath = '\\Naskampa\data\BpodBehavior\';
 optoType = [1 4 2 3];
 
 normPerf = cell(1, length(groupnames));
@@ -61,7 +61,7 @@ for iGroups = 1 : length(groupnames)
     
     nhline(0.5, '--', 'lineWidth',4, 'Color', [0.5 0.5 0.5]);
     axis square;  
-    ylim([0.45 1]);
+    ylim([0.35 1]);
     title(groupnames{iGroups});
 
     grid on; 

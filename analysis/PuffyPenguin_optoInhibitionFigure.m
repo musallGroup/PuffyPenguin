@@ -10,10 +10,10 @@ groupnames = {'EMX' 'CStr'};
 cPath = '\\naskampa\data\BpodBehavior\';
 optoType = [1 4 2 3];
 
-h = figure('name', groupnames{x}, 'renderer', 'painters');
-
 %%
 for x = 1 : length(groupnames)
+    
+    h = figure('name', groupnames{x}, 'renderer', 'painters');
     
     bhv = PuffyPenguin_loadDetectionBhv(groupnames{x}, cPath, true, 0.6);
     nrMice = length(bhv.Animals);
@@ -28,16 +28,17 @@ for x = 1 : length(groupnames)
 %     for xx = 1 : nrLocations
     for xx = 1 
         subplot(1,2,1); hold on;
-%         for iAnimals = unique(bhv.AnimalID)
-%             allData = PuffyPenguin_taskEpisodesOpto(bhv, optoTrials & ismember(bhv.AnimalID,iAnimals)); % get task episode data, low power
-%             allData.animal =bhv.Animals{iAnimals};
-%             dOut.allTimes{xx,iAnimals} = allData; %keep for output
-%             
-%             control = allData.detect(3) - 0.5;
-%             allP(:,xx,iAnimals) = (control - (allData.optoDetect(3,:,xx)-0.5)) ./ control; %difference between control and stimulation trials
-%             plot(squeeze(allP(:,xx,iAnimals))*100, 'Color', [fiberColors{xx} 0.2]);
-% %                     disp(bhv.Animals{iAnimals}); pause;
-%         end
+        iAnimals = 0;
+        for iAnimals = unique(bhv.AnimalID)
+            allData = PuffyPenguin_taskEpisodesOpto(bhv, optoTrials & ismember(bhv.AnimalID,iAnimals)); % get task episode data, low power
+            allData.animal =bhv.Animals{iAnimals};
+            dOut.allTimes{xx,iAnimals} = allData; %keep for output
+            
+            control = allData.detect(3) - 0.5;
+            allP(:,xx,iAnimals) = (control - (allData.optoDetect(3,:,xx)-0.5)) ./ control; %difference between control and stimulation trials
+            plot(squeeze(allP(:,xx,iAnimals))*100, 'Color', [fiberColors{xx} 0.2]);
+%                     disp(bhv.Animals{iAnimals}); pause;
+        end
         allData = PuffyPenguin_taskEpisodesOpto(bhv, optoTrials & ismember(bhv.AnimalID,[1:4])); % get task episode data, low power
         dOut.allTimes{xx,iAnimals + 1} = allData; %keep for output
         
@@ -60,6 +61,8 @@ for x = 1 : length(groupnames)
         hold on; errorbar(meanData, semData, 'k');
         plot(ones(1, length(optoPerf)), optoPerf, 'o', 'MarkerFaceColor', 'w', 'MarkerEdgeColor', 'k', 'MarkerSize', 10);
         hold off;
+        
+        disp(['Trialcount: ' num2str(allData.optoCnt(:, xx)')]); drawnow;
     end
     
     subplot(1,2,1);

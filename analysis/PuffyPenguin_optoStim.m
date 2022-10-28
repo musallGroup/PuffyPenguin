@@ -36,7 +36,7 @@ for iFiles = 1:size(Files,1)
     
     useData = Performance(iFiles, 1) > minPerformance && useData;
 
-    optoIdx = SessionData.optoDur > 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
+    optoIdx = SessionData.optoDur > 2 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
     Performance(iFiles, 2) = sum(SessionData.Rewarded(optoIdx)) / sum(optoIdx);
 
     if useData

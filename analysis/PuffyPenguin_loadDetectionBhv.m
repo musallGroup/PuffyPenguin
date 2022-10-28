@@ -17,7 +17,7 @@ if ~exist('newRun', 'var')
 end
 if ~newRun
     try
-        load([cPath 'PuffyPenguin' filesep 'optoDetect_' Animals{:}], 'bhv')
+        load([cPath 'PuffyPenguin' filesep 'MergedData' filesep 'optoDetect_' Animals{:}], 'bhv')
     catch ME
         disp(ME.message);
         newRun = true;

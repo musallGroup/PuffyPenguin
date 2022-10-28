@@ -18,10 +18,16 @@ allData.trialCnt = sum(ctrlInd);
 %% compute performance in optogenetic trials with different powers
 for iPower = 1 : length(optoPowers)
         
-    powerInd = oInd & (bhv.optoAmp1 == optoPowers(iPower) | bhv.optoAmp2 == optoPowers(iPower)); %select trials with correct power
+    powerInd = oInd & (bhv.optoAmp1 == optoPowers(iPower) | bhv.optoAmp2 == optoPowers(iPower)); %select trials with correct power    
     rInd = bhv.Rewarded & powerInd; %correct trials
     allData.optoDetect(iPower) = sum(rInd)/sum(powerInd); %percent correct choices
     [allData.optoDetectUp(iPower), allData.optoDetectLow(iPower)] = Behavior_wilsonError(sum(rInd), sum(powerInd)); %error
     allData.optoTrialCnt(iPower) = sum(powerInd);
         
+    ctrlInd = ismember(bhv.SessionNr, unique(bhv.SessionNr(powerInd))) & ~powerInd & perfInd & isnan(bhv.optoPower1) & isnan(bhv.optoPower2);
+    rInd = bhv.Rewarded & ctrlInd; %correct trials
+    allData.ctrlDetect(iPower) = sum(rInd)/sum(ctrlInd); %percent correct choices
+    [allData.ctrlDetectUp(iPower), allData.ctrlDetectLow(iPower)] = Behavior_wilsonError(sum(rInd), sum(ctrlInd)); %error
+    allData.ctrlTrialCnt(iPower) = sum(ctrlInd);
 end
+

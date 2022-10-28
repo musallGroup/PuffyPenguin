@@ -6,7 +6,7 @@ function [Performance,bhv] = PuffyPenguin_optoStimAudio(Animal,cPath, minPerform
 if ~strcmpi(cPath(end),filesep)
     cPath = [cPath filesep];
 end
-minTrials = 5;
+minTrials = 20;
 % minPerformance = 0.6; % %minimum performance to be counted
 
 %% get files and date for each recording
@@ -32,7 +32,7 @@ for iFiles = 1:size(Files,1)
     useData = sum(SessionData.optoDur > 0 & ~SessionData.DidNotChoose) > minTrials && isfield(SessionData.TrialSettings(1), 'optoLocation'); %if file contains some optogenetic trials
     useData = useData && any(SessionData.StimType(SessionData.optoDur > 0) == 2);
     
-    normIdx = SessionData.optoDur == 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose;
+    normIdx = SessionData.optoDur == 0 & ~SessionData.SingleSpout & ~SessionData.DidNotChoose & SessionData.Assisted;
     Performance(iFiles, 1) = sum(SessionData.Rewarded(normIdx)) / sum(normIdx);
     
     useData = Performance(iFiles, 1) > minPerformance && useData;
