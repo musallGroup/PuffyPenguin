@@ -1,5 +1,5 @@
 %PuffyPenguin_CloseSession
-
+tic
 if S.SaveSettings %if current settings should be saved to file
     S.SaveSettings = false; %set variable back to false before saving
     ProtocolSettings = BpodSystem.ProtocolSettings;
@@ -97,3 +97,4 @@ end
 % close GUI
 close(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure);
 RunProtocol('Stop');
+toc

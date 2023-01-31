@@ -1,5 +1,33 @@
 %PuffyPenguin_OptoInit
 
+%% check if sequence mode is active and whether this should change the probability of an optogenetic trial.
+if S.optoSeqActive
+    if S.optoSeqTrials > 0 || S.optoSeqInterval > 0
+        
+        % start of new sequence
+        if ((now - optoSeqStartTime)*24*60) > S.optoSeqInterval
+            disp(((now - optoSeqStartTime)*24*60));
+            optoSeqStartTime = now;
+            optoSeqTrialCnt = 0;
+        end
+        
+        % check number of optogenetic trials and set optoProb  to 1 of
+        % lower as target number of trials
+        cObj = BpodSystem.GUIHandles.PuffyPenguin.optofractiontrialsEditField;
+        cCallBack = cObj.ValueChangedFcn;
+        if optoSeqTrialCnt < S.optoSeqTrials
+            optoSeqTrialCnt = optoSeqTrialCnt + 1;
+            S.optoProb = 1;
+            cObj.Value = 1;
+            optoSeqStartTime = now;
+        else
+            S.optoProb = 0;
+            cObj.Value = 0;
+        end
+        cCallBack(cObj, []); %confirm value change in GUI
+    end
+end
+
 %% check if optogenetic stimulus should be presented
 optoDur = 0; %duration of optogenetic stimulus
 optoSide = NaN; %side to which an optogenetic stimulus gets presented. 1 = left, 2 = right.
@@ -10,7 +38,21 @@ optoPower2 = NaN;
 %  5 = Handle period. Starts right with stimulus onset. Use varStimOn to ensure this doesnt come up during the stimulus.)
 
 stimEvents = [stimEvents, cell(1,2)]; %add events for optogenetics at the end of stimEvents
-if rand < S.optoProb
+triggerOptoStim = false; %flag to check if optogenetic trial should be presented
+if ~SingleSpout
+    if StimType == 1
+        triggerOptoStim = rand < (S.optoProb / S.fractionTrainingVision);
+    elseif StimType == 2
+        triggerOptoStim = rand < (S.optoProb / S.fractionTrainingAudio);
+    elseif StimType == 4
+        triggerOptoStim = rand < (S.optoProb / S.fractionTrainingTactile);
+    else
+        triggerOptoStim = rand < S.optoProb;
+    end
+end
+
+if triggerOptoStim
+    disp(SingleSpout);
     % determine time of opto stimulus
     if strcmpi(S.optoPeriod,'Stimulus')
         optoType = 1;
@@ -25,7 +67,7 @@ if rand < S.optoProb
     elseif strcmpi(S.optoPeriod,'Response')
         optoType = 3;
     elseif strcmpi(S.optoPeriod,'LateStimulus')
-        optoType = bpod4;
+        optoType = 4;
     elseif strcmpi(S.optoPeriod,'AllTimes')
         coin = rand;
         if coin < 0.25
@@ -83,6 +125,7 @@ if rand < S.optoProb
     end
 
     %% create opto stim sequence
+    sRate = BpodSystem.ProtocolSettings.sRate;
     pulse = ones(1, round(optoDur * sRate));
     pulse(end-round(S.optoRamp * sRate)+1:end) = (1-1/round(S.optoRamp * sRate) : -1/round(S.optoRamp * sRate) : 0);
     pulse(end) = 0; %make sure this goes back to 0
@@ -122,4 +165,4 @@ end
 
 % send signal matrix to GUI
 BpodSystem.GUIData.Stimuli = Signal;
-BpodSystem.GUIData.TrialEpisodes = [S.preStimDelay+cStimOn, stimDur, cDecisionGap, 0.5];
+BpodSystem.GUIData.TrialEpisodes = [S.preStimDelay+cStimOn, stimDur, cDecisionGap, 2];

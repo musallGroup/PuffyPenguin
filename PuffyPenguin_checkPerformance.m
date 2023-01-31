@@ -6,11 +6,14 @@ modLabels = {'Vision' 'Audio' 'AudioVisual' 'Tactile' 'VisuoTactile' 'AudioTacti
 modIdx = [1 2 4 5]; %modalities to check (as identified by modlabels above)         
 
 try %make sure this doesnt cause an error
-    
 cAnimal = BpodSystem.ProtocolSettings.SubjectName;
 
 cPath = [BpodSystem.ProtocolSettings.serverPath cAnimal ...
     '\PuffyPenguin\Session Data'];
+
+if ~exist(cPath, 'dir')
+    error('Could not find server location for behavioral data.');
+end
 
 recs = dir(cPath);
 recs = recs([recs.isdir]);

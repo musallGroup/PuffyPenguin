@@ -27,7 +27,6 @@ BpodSystem.ProtocolSettings.SubjectName = BpodSystem.GUIData.SubjectName; %updat
 serverPath = [BpodSystem.ProtocolSettings.serverPath filesep BpodSystem.ProtocolSettings.SubjectName filesep ...
     BpodSystem.GUIData.ProtocolName]; %path to data server
 
-
 %% ensure analog output module is present and set up communication
 clear W
 try
@@ -62,9 +61,9 @@ W.TriggerProfiles(1, :) = 1:4; %when triggering first row, ch1-4 will play wavef
 W.TriggerMode = 'Master'; %output can be interrupted by new stimulus triggers
 W.LoopDuration(1:4) = 0; %keep on for a up to 10 minutes
 W.SamplingRate = BpodSystem.ProtocolSettings.sRate; %adjust sampling rate
-RewardSound = zeros(1,BpodSystem.ProtocolSettings.sRate*0.02);
-RewardSound(1:int32(BpodSystem.ProtocolSettings.sRate*0.01)) = 1; %10ms click sound for reward
-RewardSound = RewardSound*5;
+tt = -pi:2*pi*1000/(BpodSystem.ProtocolSettings.sRate*3):pi;tt=tt(1:end-1);
+RewardSound = (1+cos(tt)).*(sin(2*tt)+sin(4*tt)+sin(6*tt)+sin(8*tt)+sin(16*tt));
+RewardSound = RewardSound * 0.1;
 W.loadWaveform(11,RewardSound); % load signal to waveform object
 W.TriggerProfiles(11, 1:2) = 11; %this will play waveform 11 (rewardSound) on ch1+2
 
@@ -162,13 +161,13 @@ end
 % end
 
 %% check for rotary encoder module
-clear R
+clear R; R = [];
 try
     R = RotaryEncoderModule(S.rotaryEncoderPort); %check if rotary encoder module com port is correct
     fprintf('Rotary encoder module found on port %s\n.', S.rotaryEncoderPort)
 catch
     % check for analog module by finding a serial device that can create a waveplayer object
-    clear R
+    clear R; R = [];
     Ports = FindSerialPorts; % get available serial com ports
     Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
     Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
@@ -184,6 +183,7 @@ end
 
 if isempty(R)
     S.rotaryEncoderPort = [];
+    BpodSystem.ProtocolSettings.rotaryEncoderPort = [];
     warning('!!! No rotary encoder module found. Wheel data will not be available in SessionData !!!');
 end
 
@@ -238,6 +238,11 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
     rs = num2str(BpodSystem.ProtocolSettings.rInnerLim);
     teensyWrite([71 length(ls)  ls length(rs)  rs]);
     
+    %% check state of optoSeqactive tickbox
+    cObj = BpodSystem.GUIHandles.PuffyPenguin.optoSeqActive;
+    cCallBack = cObj.ValueChangedFcn;
+    cCallBack(cObj, []); %confirm value change in GUI to inactivate the correctfields
+
 	%% initialize communication with labcams to get videos
     if isfield(BpodSystem.ProtocolSettings,'labcamsAddress')
         if ~isempty(BpodSystem.ProtocolSettings.labcamsAddress)
@@ -257,7 +262,7 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 %%
                 disp(' -> starting labcams');
                 if ~isunix
-                    labcamsproc=System.Diagnostics.Process.Start('labcams.exe','-w');
+                    labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
                     pause(5); tic;
                     if ~labcamsproc.HasExited
                         while labcamsproc.Responding && toc < 10

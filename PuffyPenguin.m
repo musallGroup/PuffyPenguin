@@ -1,6 +1,7 @@
 function PuffyPenguin
 global BpodSystem
 
+BpodSystem.Status.PuffyPenguinExit = false;
 PuffyPenguin_Settings; %script to define default settings if they are not defined by settings file
 PuffyPenguin_Init; %initialize hardware and establish labcams communication
 
@@ -8,7 +9,7 @@ PuffyPenguin_Init; %initialize hardware and establish labcams communication
 BpodSystem.GUIHandles.PuffyPenguin.PauseSwitch.Value = 'pause'; drawnow;
 BpodSystem.Status.PuffyPenguinPause = true;
 figure(BpodSystem.GUIHandles.PuffyPenguin.PuffyPenguinUIFigure); %bring to foreground
-while BpodSystem.Status.PuffyPenguinPause
+while BpodSystem.Status.PuffyPenguinPause && ~BpodSystem.Status.PuffyPenguinExit 
     drawnow; pause(0.03);
 end
 
@@ -24,7 +25,8 @@ if exist('udplabcams','var')
 end
 
 %% Main loop for single trials
-BpodSystem.Status.PuffyPenguinExit = false;
+optoSeqStartTime = now; %start point for sequential optogenetics mode
+optoSeqTrialCnt = inf; %trialcounter for sequential optogenetics mode
 for iTrials = 1 : maxTrials
     
     % check the pause button
@@ -52,8 +54,8 @@ for iTrials = 1 : maxTrials
         %% run main scripts to prepare current trial
         PuffyPenguin_TrialInit %check basic variables (timing etc for current stimulus)
         PuffyPenguin_StimulusInit %set up simuli for different modalities/sides etc and generate analog waveforms
-        PuffyPenguin_OptoInit %set up optogenetic stimuli for left/right and at what point in the trial
         PuffyPenguin_AutoReward %check if single spouts should be given, based on trainingsstatus
+        PuffyPenguin_OptoInit %set up optogenetic stimuli for left/right and at what point in the trial
         PuffyPenguin_BpodTrialInit %prepare variables for state machine
         PuffyPenguin_DisplayTrialData %show current trial stuff on GUI
         

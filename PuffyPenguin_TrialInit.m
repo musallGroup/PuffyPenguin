@@ -7,26 +7,6 @@ S = BpodSystem.ProtocolSettings; %update settings for this trial
 % set analog input lines to zero at black indicator
 A.setZero()
 
-%% create sounds - recreate if loudness has changed
-if iTrials == 1 || PrevStimLoudness ~= S.StimLoudness
-    sRate = BpodSystem.ProtocolSettings.sRate;
-    PunishSound = ((rand(1,int32(sRate*S.PunishSoundDur)) * 5) - 2.5) * S.StimLoudness / 2; %white noise for punishment
-    if isempty(PunishSound); PunishSound = zeros(1,sRate/1000); end
-
-    RewardSound = zeros(1,sRate*0.02); 
-    RewardSound(1:int32(sRate*0.01)) = 1; %20ms click sound for reward
-    RewardSound = RewardSound * S.StimLoudness;    
-    trialStartSound = GenerateSineWave(sRate, 4000, 0.05) * (S.StimLoudness/20); %0.05s pure tone to indicate start of the current trial
-    
-    W.loadWaveform(10,trialStartSound); % load signal to waveform object
-    W.loadWaveform(11,RewardSound); % load signal to waveform object
-    W.loadWaveform(12,PunishSound); % load signal to waveform object
-    PrevStimLoudness = S.StimLoudness;
-    W.TriggerProfiles(10, 1:2) = 10; %this will play waveform 11 (trialStart) on ch1+2
-    W.TriggerProfiles(11, 1:2) = 11; %this will play waveform 11 (rewardSound) on ch1+2
-    W.TriggerProfiles(12, 1:2) = 12; %this will play waveform 12 (punishSound) on ch1+2
-end
-
 %% update valve times
 LeftValveTime = GetValveTimes(S.leftRewardVolume, 1);
 RightValveTime = GetValveTimes(S.rightRewardVolume, 2);

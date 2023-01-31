@@ -60,6 +60,10 @@ DefaultSettings.happyTime = 0.5; % (s) Time of the last bpod state. This is to g
 DefaultSettings.TrialStartCue = 1;
 DefaultSettings.UseStimStartCue = 1;
 
+DefaultSettings.optoSeqActive = false; %activate optogenetic sequence mode: run a certain number of optogenetic trials after a specific duration in minutes
+DefaultSettings.optoSeqTrials = 0; %number of optogenetic trials that will be activated each cycle
+DefaultSettings.optoSeqInterval = 0; % (min) duration of interval until next set of optogenetic trials is activated.
+
 %Stimulus settings
 DefaultSettings.BeepDuration = 3; % Beep duration in ms.
 DefaultSettings.FlashDuration = 20; % Flash duration in ms.
@@ -96,6 +100,7 @@ DefaultSettings.sRate = 20000; % This is the sampling rate of the analog output 
 DefaultSettings.PunishSoundDur = 0; % (s) Duration of white noise punish sound when the animal makes a mistake.
 DefaultSettings.blackScreen = false; %flag to set screens to black when no visual stimulation is used. This stops the visual stim server.
 DefaultSettings.stimScreens = [3 4]; %ID number of screens that should be used for visual stimulation.
+DefaultSettings.showWater = false; %flag to present a water drop during the pre-stimulus period.
 
 % Stimulus presentation settings
 DefaultSettings.ProbRight = 0.5; %Probability for occurence of a target presentation on the right.

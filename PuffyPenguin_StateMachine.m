@@ -9,8 +9,10 @@ end
 % check auto reward state for current trial
 if (S.AutoReward || GiveReward)
     checkAutoState =  'AutoReward';
+    realRewardValveTime = 0;
 else % check the animal response
-    checkAutoState = 'DelayPeriod';
+    checkAutoState = 'PinchOpen';
+    realRewardValveTime = rewardValveTime;
 end
 
 %% Build state matrix
@@ -67,16 +69,29 @@ sma = AddState(sma, 'Name', 'StartTrigger', ... %trialstart trigger
     'OutputActions', startTrigger);
 
 % check if visual will get presented and add trigger state if needed
+
+
+sma = AddState(sma, 'Name', 'PreStimulus', ... %wait before starting the stimulus
+    'Timer', S.preStimDelay + cStimOn, ...
+    'StateChangeConditions', {'Tup', 'PinchCheck'},...
+    'OutputActions', {});
+
 if ismember(StimType, [1 3 5 7])
     nextState = 'VisualStim';
 else
     nextState = 'PlayStimulus';
 end
 
-sma = AddState(sma, 'Name', 'PreStimulus', ... %wait before starting the stimulus
-    'Timer', S.preStimDelay + cStimOn, ...
+if S.showWater
+    pinchByte = pinchCloseByte; %this is a byte to open the pinch valve. Will show water drop.
+else
+    pinchByte = pinchOpenByte; %this is a byte to open the pinch valve. Used as a placeholder here.
+end
+
+sma = AddState(sma, 'Name', 'PinchCheck', ... %check if pinch valve should be opened
+    'Timer', 0, ...
     'StateChangeConditions', {'Tup', nextState},...
-    'OutputActions', {});
+    'OutputActions', {'TouchShaker1', pinchByte});
 
 sma = AddState(sma, 'Name', 'VisualStim', ... %start visual stimulation, wait for feedback from photodiodes
     'Timer', 5, ...
@@ -134,8 +149,13 @@ end
 
 sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
     'Timer', rewardValveTime,...
-    'StateChangeConditions', {'Tup','DelayPeriod'},...
+    'StateChangeConditions', {'Tup','PinchOpen'},...
     'OutputActions', {'ValveState', RewardValve}); %open reward valve
+
+sma = AddState(sma, 'Name', 'PinchOpen', ... %make sure pinch valves are open again
+    'Timer', 0, ...
+    'StateChangeConditions', {'Tup', 'DelayPeriod'},...
+    'OutputActions', {'TouchShaker1', pinchOpenByte});
 
 sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add delay after stimulus presentation
     'Timer', cDecisionGap, ...
@@ -163,7 +183,7 @@ sma = AddState(sma, 'Name', 'CheckPunish', ... %wait for second lick to confirm 
     'OutputActions',{});
 
 sma = AddState(sma, 'Name', 'Reward', ... %reward for correct response
-    'Timer', rewardValveTime,...
+    'Timer', realRewardValveTime,...
     'StateChangeConditions', {'Tup','HappyTime'},...
     'OutputActions', {'ValveState', RewardValve, 'WavePlayer1',['P' 10], 'TouchShaker1', moveRewardOut}); %open reward valve and play reward click (don't act if reward was given already)
 

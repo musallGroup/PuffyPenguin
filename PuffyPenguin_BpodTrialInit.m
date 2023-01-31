@@ -31,6 +31,8 @@ if TrialSidesList(iTrials) == 0 %target is left
     rewardValveTime = LeftValveTime;
     correctSide = 1;
     cSide = 'Left'; wSide = 'Right';
+    pinchCloseByte = 50;
+    pinchOpenByte = 52;
 else
     LeftPortAction = 'CheckPunish';
     cLeftPortAction = 'CheckPunish';
@@ -44,4 +46,6 @@ else
     rewardValveTime = RightValveTime;
     correctSide = 2;
     cSide = 'Right'; wSide = 'Left';
+    pinchCloseByte = 51;
+    pinchOpenByte = 53;
 end
