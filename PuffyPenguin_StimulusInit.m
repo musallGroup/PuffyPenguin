@@ -89,7 +89,7 @@ elseif strcmpi(S.RewardedModality,'SomatoAudio')
         end
     end
 elseif strcmpi(S.RewardedModality,'AllMixed')
-    StimType = 7;
+    
     %  ProbAudio and ProbVision can switch trial to single modality if any is larger then 0.
     singleModProb = S.ProbAudio + S.ProbVision + S.ProbTactile; %probability of switchting to single modality
     if rand < singleModProb %switch to single modality
@@ -109,6 +109,22 @@ elseif strcmpi(S.RewardedModality,'AllMixed')
             if ~S.useDistTactile
                 TrialType = 1;
             end
+        end
+        
+    else
+        %for multisensory case, there are 4 combinations to consider:
+        %audiovisual (3), somatovisual (5), somatoaudio (6) or all modalities (7)
+        %Each is equally likely to occur at 25%.
+        
+        coin = rand;
+        if coin <= 0.25
+            StimType = 3;
+        elseif coin <= 0.5
+            StimType = 5;
+        elseif coin <= 0.75
+            StimType = 6;
+        else
+            StimType = 7;
         end
     end
 end
@@ -198,7 +214,7 @@ while checker
     if isempty(Signal)
         Signal = zeros(8,2);
     end
-    cellfun(@sum,binSeq)
+%     cellfun(@sum,binSeq)
     checker = false;
     
     for x = [1 3 5]
