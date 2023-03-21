@@ -14,6 +14,7 @@ while BpodSystem.Status.PuffyPenguinPause && ~BpodSystem.Status.PuffyPenguinExit
 end
 
 %% Start saving labcams if connected
+BpodSystem.Status.labcamsRuns = false; %flag that video is being recorded
 if exist('udplabcams','var')
     fwrite(udplabcams,'softtrigger=0')
     fgetl(udplabcams);
@@ -25,7 +26,10 @@ if exist('udplabcams','var')
 end
 
 %% Main loop for single trials
+optoSeqStartTime = now; %start point for sequential optogenetics mode
+optoSeqTrialCnt = inf; %trialcounter for sequential optogenetics mode
 for iTrials = 1 : maxTrials
+    
     % check the pause button
     if BpodSystem.Status.PuffyPenguinPause
         disp('Spatial Sparrow paused')
@@ -35,7 +39,7 @@ for iTrials = 1 : maxTrials
                 break
             end
         end
-    end    
+    end
     
     %check bpod pause button
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
@@ -98,8 +102,7 @@ for iTrials = 1 : maxTrials
             fwrite(udplabcams,sprintf('log=trial_end:%d',iTrials));
         end
         
-        %save data from current trial and settings if requested
-        PuffyPenguin_SaveTrial; 
+        PuffyPenguin_SaveTrial; %save data from current trial and settings if requested
         
         try
             BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots;
