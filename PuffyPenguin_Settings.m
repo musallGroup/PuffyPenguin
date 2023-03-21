@@ -20,7 +20,7 @@ DefaultSettings.biasSeqLength = 3; %nr of trials on one side after which the oth
 
 DefaultSettings.widefieldPath = '\\naskampa\LTS2\BpodWidefield\'; %path to widefield data on server
 DefaultSettings.serverPath = '\\naskampa\DATA\BpodBehavior\'; %path to behavioral data on server
-DefaultSettings.labcamsAddress = '127.0.0.1:9999';
+DefaultSettings.labcamsAddress = '127.0.0.1:9998';
 DefaultSettings.visualAddress = '127.0.0.1:5005';
 DefaultSettings.wavePort = 'COM18'; %com port for analog output module
 DefaultSettings.analogInPort = 'COM4'; %com port for analog input module
