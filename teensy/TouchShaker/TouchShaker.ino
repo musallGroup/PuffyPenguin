@@ -176,7 +176,7 @@ float touchVal = 0; // temporary variable for usb communication
 long int sampleCnt[] = {0, 0}; // counter for samples during touch adjustment
 unsigned long adjustClocker = millis(); // timer for re-adjustment of touch lines
 float runningAvg[2] = { 0, 0 }; // current values for the four touch lines (left spout, right spout, left, handle, right handle)
-float avgWeight = 10000; // weight of past values when converving to a constant offset. Higher values mean that traces take more time to go back to zero.
+float avgWeight = 1000; // weight of past values when converving to a constant offset. Higher values mean that traces take more time to go back to zero.
 
 // Other variables
 bool midRead = false;
