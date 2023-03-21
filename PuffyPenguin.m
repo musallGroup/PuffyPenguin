@@ -25,10 +25,7 @@ if exist('udplabcams','var')
 end
 
 %% Main loop for single trials
-optoSeqStartTime = now; %start point for sequential optogenetics mode
-optoSeqTrialCnt = inf; %trialcounter for sequential optogenetics mode
 for iTrials = 1 : maxTrials
-    
     % check the pause button
     if BpodSystem.Status.PuffyPenguinPause
         disp('Spatial Sparrow paused')
@@ -38,11 +35,17 @@ for iTrials = 1 : maxTrials
                 break
             end
         end
-    end
+    end    
     
     %check bpod pause button
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
         
+    if iTrials == 1
+        optoSeqStartTime = 0; %start point for sequential optogenetics mode
+        optoSeqTrialCnt = inf; %trialcounter for sequential optogenetics mode
+        optoSeqLastSide = rand > 0.5; %starting side for unilateral optogenetics
+    end
+    
     % only run this code if protocol is still active
     if BpodSystem.Status.BeingUsed && ~BpodSystem.Status.PuffyPenguinExit
         
@@ -94,8 +97,9 @@ for iTrials = 1 : maxTrials
         if exist('udplabcams','var')
             fwrite(udplabcams,sprintf('log=trial_end:%d',iTrials));
         end
-
-        PuffyPenguin_SaveTrial; %save data from current trial and settings if requested
+        
+        %save data from current trial and settings if requested
+        PuffyPenguin_SaveTrial; 
         
         try
             BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots;

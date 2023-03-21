@@ -1,31 +1,75 @@
 %PuffyPenguin_OptoInit
 
 %% check if sequence mode is active and whether this should change the probability of an optogenetic trial.
-if S.optoSeqActive
-    if S.optoSeqTrials > 0 || S.optoSeqInterval > 0
+if S.optoSeqActive && iTrials > 1 && S.optoSeqTrials > 0 && S.optoSeqInterval > 0
+    
+    runOptoSeq = false; %flag to check if optoSeq should run
+    
+    % get elapsed time after end of first trial
+    elapsed = (BpodSystem.Data.TrialStartTime(end) - BpodSystem.Data.TrialStartTime(1))/60;
+    
+    % first optogenetic sequence after start time has been reached
+    if optoSeqStartTime == 0 && elapsed > S.optoSeqStartTime
+        runOptoSeq = true;
         
-        % start of new sequence
-        if ((now - optoSeqStartTime)*24*60) > S.optoSeqInterval
-            disp(((now - optoSeqStartTime)*24*60));
-            optoSeqStartTime = now;
-            optoSeqTrialCnt = 0;
-        end
-        
-        % check number of optogenetic trials and set optoProb  to 1 of
-        % lower as target number of trials
-        cObj = BpodSystem.GUIHandles.PuffyPenguin.optofractiontrialsEditField;
-        cCallBack = cObj.ValueChangedFcn;
-        if optoSeqTrialCnt < S.optoSeqTrials
-            optoSeqTrialCnt = optoSeqTrialCnt + 1;
-            S.optoProb = 1;
-            cObj.Value = 1;
-            optoSeqStartTime = now;
-        else
-            S.optoProb = 0;
-            cObj.Value = 0;
-        end
-        cCallBack(cObj, []); %confirm value change in GUI
+    elseif optoSeqStartTime > 0 && (elapsed-optoSeqStartTime) > S.optoSeqInterval
+        runOptoSeq = true;
+        optoSeqLastSide = ~optoSeqLastSide; %flip to other side for next time
     end
+    
+    if runOptoSeq
+        disp(['Opto sequence ACTIVE. Elapsed time from last sequence: ' num2str(elapsed-optoSeqStartTime, 2) ' minutes']);
+        disp(['Presenting ' num2str(S.optoSeqTrials) ' optogenetic trials in a row.']);
+        if S.optoSeqUnilateral
+            cSides = {'LEFT', 'RIGHT'};
+            disp(['Performing UNILATERAL stimulation on the ' cSides{double(optoSeqLastSide)+1} ' side.']);
+        else
+            disp('Performing UNILATERAL stimulation on BOTH sides.');
+        end
+        optoSeqTrialCnt = 0; %reset opto trial counter
+    end
+    
+    % check number of optogenetic trials and set optoProb  to 1 if
+    % counter is below the target number of trials
+    optoFractionObj = BpodSystem.GUIHandles.PuffyPenguin.optofractiontrialsEditField;
+    optoRightObj = BpodSystem.GUIHandles.PuffyPenguin.optoProbRight;
+    optoBothObj = BpodSystem.GUIHandles.PuffyPenguin.optoProbBoth;
+    if optoSeqTrialCnt < S.optoSeqTrials
+        optoSeqTrialCnt = optoSeqTrialCnt + 1;
+        S.optoProb = 1;
+        optoFractionObj.Value = 1;
+        optoSeqStartTime = elapsed;
+        
+        if S.optoSeqUnilateral
+            S.optoBoth = 0; %use only one side;
+            if optoSeqLastSide
+                S.optoRight = 1; %present optogenetics on the right side
+            else
+                S.optoRight = 0; %present optogenetics on the left side
+            end
+            
+        else
+            S.optoBoth = 1; %use both sides
+            S.optoRight = 0.5; %make sure this is balanced again (although it shouldnt be used)
+        end
+        
+        %update GUI values
+        optoRightObj.Value = S.optoRight;
+        optoBothObj.Value = S.optoBoth;
+    else
+        S.optoProb = 0;
+        optoFractionObj.Value = 0;
+    end
+    
+     %confirm value changes in GUI
+    cCallBack = optoFractionObj.ValueChangedFcn;
+    cCallBack(optoFractionObj, []);
+    
+    cCallBack = optoRightObj.ValueChangedFcn;
+    cCallBack(optoRightObj, []);
+    
+    cCallBack = optoBothObj.ValueChangedFcn;
+    cCallBack(optoBothObj, []);    
 end
 
 %% check if optogenetic stimulus should be presented
@@ -52,7 +96,7 @@ if ~SingleSpout
 end
 
 if triggerOptoStim
-    disp(SingleSpout);
+
     % determine time of opto stimulus
     if strcmpi(S.optoPeriod,'Stimulus')
         optoType = 1;

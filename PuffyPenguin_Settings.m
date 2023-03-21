@@ -61,8 +61,10 @@ DefaultSettings.TrialStartCue = 1;
 DefaultSettings.UseStimStartCue = 1;
 
 DefaultSettings.optoSeqActive = false; %activate optogenetic sequence mode: run a certain number of optogenetic trials after a specific duration in minutes
+DefaultSettings.optoSeqUnilateral = false; %perform unilateral optogenetic stimulation sequence
 DefaultSettings.optoSeqTrials = 0; %number of optogenetic trials that will be activated each cycle
 DefaultSettings.optoSeqInterval = 0; % (min) duration of interval until next set of optogenetic trials is activated.
+DefaultSettings.optoSeqStartTime = 0; % (min) time of the first optogenetic sequence after beginning of the first trial.
 
 %Stimulus settings
 DefaultSettings.BeepDuration = 3; % Beep duration in ms.
