@@ -36,14 +36,17 @@ if length(fieldnames(RawEvents)) > 1
     
     % get ambient data if present
     try
-    if ~isempty(S.ambientPort)
-        vals = AB.getMeasurements;
-        cFields = fieldnames(vals);
-        for iFields = 1 : length(cFields)
-            BpodSystem.Data.(cFields{iFields})(iTrials) = vals.(cFields{iFields});
+        if false
+%         if ~isempty(S.ambientPort)
+            vals = AB.getMeasurements;
+            cFields = fieldnames(vals);
+            for iFields = 1 : length(cFields)
+                BpodSystem.Data.(cFields{iFields})(iTrials) = vals.(cFields{iFields});
+            end
         end
+    catch
+        warning("Problem with reading Ambient Module!!!");
     end
-    catch; end
     
     % get wheel data if present
     if ~isempty(S.rotaryEncoderPort)
@@ -80,6 +83,19 @@ if length(fieldnames(RawEvents)) > 1
     fprintf('Initiated: %d | Completed: %d | Rewards: %d\n', iTrials, ...
         nansum(OutcomeRecord==0|OutcomeRecord==1), ...
         nansum(OutcomeRecord==1))
+
+    % display trial counts for vision, somatosensory and somatovisual
+    for iMods = [1 4 5]
+
+        % detection
+        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 1);
+        disp(['Self performed DETECTION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
+
+        % discrimination
+        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 2);
+        disp(['Self performed DISCRIMINATION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
+
+    end
 end
 
 % Create the folder if it does not exist already.

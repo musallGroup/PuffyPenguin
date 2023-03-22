@@ -20,7 +20,7 @@ DefaultSettings.biasSeqLength = 3; %nr of trials on one side after which the oth
 
 DefaultSettings.widefieldPath = '\\naskampa\LTS2\BpodWidefield\'; %path to widefield data on server
 DefaultSettings.serverPath = '\\naskampa\DATA\BpodBehavior\'; %path to behavioral data on server
-DefaultSettings.labcamsAddress = '127.0.0.1:9999';
+DefaultSettings.labcamsAddress = '127.0.0.1:9998';
 DefaultSettings.visualAddress = '127.0.0.1:5005';
 DefaultSettings.wavePort = 'COM18'; %com port for analog output module
 DefaultSettings.analogInPort = 'COM4'; %com port for analog input module
@@ -61,8 +61,10 @@ DefaultSettings.TrialStartCue = 1;
 DefaultSettings.UseStimStartCue = 1;
 
 DefaultSettings.optoSeqActive = false; %activate optogenetic sequence mode: run a certain number of optogenetic trials after a specific duration in minutes
+DefaultSettings.optoSeqUnilateral = false; %perform unilateral optogenetic stimulation sequence
 DefaultSettings.optoSeqTrials = 0; %number of optogenetic trials that will be activated each cycle
 DefaultSettings.optoSeqInterval = 0; % (min) duration of interval until next set of optogenetic trials is activated.
+DefaultSettings.optoSeqStartTime = 0; % (min) time of the first optogenetic sequence after beginning of the first trial.
 
 %Stimulus settings
 DefaultSettings.BeepDuration = 3; % Beep duration in ms.

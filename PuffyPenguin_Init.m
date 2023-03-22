@@ -39,6 +39,7 @@ catch
 
     for i = 1 : length(Ports)
         try
+            disp(Ports{i});
             W = BpodWavePlayer(Ports{i});
             S.wavePort = Ports{i};
             fprintf('Analog output module found on port %s\n.', Ports{i})
@@ -194,7 +195,6 @@ try
     AB = AmbientModule(S.ambientPort); %check if ambient module com port is correct
 catch
     % check for analog module by finding a serial device that can create a waveplayer object
-    clear AB
     Ports = FindSerialPorts; % get available serial com ports
     Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
     Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
@@ -202,8 +202,11 @@ catch
     for i = 1 : length(Ports)
         try
             AB = AmbientModule(Ports{i});
+            AB.getMeasurements;
             S.ambientPort = Ports{i};
             break
+        catch
+            clear AB
         end
     end
 end
@@ -212,6 +215,8 @@ if ~exist('AB', 'var') || isempty(AB)
     S.ambientPort = [];
     warning('!!! No ambient module found. Ambient data will not be available in SessionData !!!');
 end
+
+BpodSystem.ProtocolSettings = S; % Adds the currently used settings to the Bpod struct
 
 %% Stimulus parameters - Create trial types list (single vs double stimuli)
 maxTrials = 5000;

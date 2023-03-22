@@ -14,6 +14,7 @@ while BpodSystem.Status.PuffyPenguinPause && ~BpodSystem.Status.PuffyPenguinExit
 end
 
 %% Start saving labcams if connected
+BpodSystem.Status.labcamsRuns = false; %flag that video is being recorded
 if exist('udplabcams','var')
     fwrite(udplabcams,'softtrigger=0')
     fgetl(udplabcams);
@@ -43,6 +44,12 @@ for iTrials = 1 : maxTrials
     %check bpod pause button
     HandlePauseCondition; % Checks to see if the protocol is paused. If so, waits until user resumes.
         
+    if iTrials == 1
+        optoSeqStartTime = 0; %start point for sequential optogenetics mode
+        optoSeqTrialCnt = inf; %trialcounter for sequential optogenetics mode
+        optoSeqLastSide = rand > 0.5; %starting side for unilateral optogenetics
+    end
+    
     % only run this code if protocol is still active
     if BpodSystem.Status.BeingUsed && ~BpodSystem.Status.PuffyPenguinExit
         
@@ -94,7 +101,7 @@ for iTrials = 1 : maxTrials
         if exist('udplabcams','var')
             fwrite(udplabcams,sprintf('log=trial_end:%d',iTrials));
         end
-
+        
         PuffyPenguin_SaveTrial; %save data from current trial and settings if requested
         
         try
