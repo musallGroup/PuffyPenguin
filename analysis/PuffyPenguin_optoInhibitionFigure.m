@@ -15,7 +15,7 @@ for x = 1 : length(groupnames)
     
     h = figure('name', groupnames{x}, 'renderer', 'painters');
     
-    bhv = PuffyPenguin_loadDetectionBhv(groupnames{x}, cPath, true, 0.6);
+    bhv = PuffyPenguin_loadDetectionBhv(groupnames{x}, cPath, false, 0.6);
     nrMice = length(bhv.Animals);
     
     %%
