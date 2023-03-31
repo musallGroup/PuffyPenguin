@@ -88,11 +88,11 @@ if length(fieldnames(RawEvents)) > 1
     for iMods = [1 4 5]
 
         % detection
-        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 1);
+        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 1 & BpodSystem.Data.StimType == iMods);
         disp(['Self performed DETECTION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
 
         % discrimination
-        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 2);
+        trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 2 & BpodSystem.Data.StimType == iMods);
         disp(['Self performed DISCRIMINATION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
 
     end

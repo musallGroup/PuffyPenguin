@@ -118,18 +118,12 @@ if ~isempty(tacSide)
     interPuff(end + 1) = stimDur - (tacEvents(end) + puffDur);
     
     for iPuff = 1 : length(tacSide)
-
-        if iPuff == 1
-            nextState = {'ValveState', tacSide(iPuff), 'BNCState', 2};
-        else
-            nextState = {'ValveState', tacSide(iPuff)};
-        end
-        
+           
         % air puff state
         sma = AddState(sma, 'Name', ['Puff_' num2str(iPuff)], ... %present stimulus for the set stimulus duration.
             'Timer', puffDur, ... %duration of air puff
             'StateChangeConditions', {'Tup', ['PuffWait_' num2str(iPuff)]},...
-            'OutputActions', nextState); %start stimulus presentation + stimulus trigger
+            'OutputActions', {'ValveState', tacSide(iPuff), 'BNCState', 2}); %start stimulus presentation + stimulus trigger
             
         % check if this is the last event
         if iPuff == length(tacSide)
@@ -142,7 +136,7 @@ if ~isempty(tacSide)
         sma = AddState(sma, 'Name', ['PuffWait_' num2str(iPuff)], ... %present stimulus for the set stimulus duration.
             'Timer', interPuff(iPuff), ... %duration of air puff
             'StateChangeConditions', {'Tup', nextState},...
-            'OutputActions', {}); %start stimulus presentation + stimulus trigger
+            'OutputActions', {'BNCState', 2}); %start stimulus presentation + stimulus trigger
         
     end
 end
@@ -150,17 +144,17 @@ end
 sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
     'Timer', rewardValveTime,...
     'StateChangeConditions', {'Tup','PinchOpen'},...
-    'OutputActions', {'ValveState', RewardValve}); %open reward valve
+    'OutputActions', {'ValveState', RewardValve, 'BNCState', 2}); %open reward valve
 
 sma = AddState(sma, 'Name', 'PinchOpen', ... %make sure pinch valves are open again
     'Timer', 0, ...
     'StateChangeConditions', {'Tup', 'DelayPeriod'},...
-    'OutputActions', {'TouchShaker1', pinchOpenByte});
+    'OutputActions', {'TouchShaker1', pinchOpenByte, 'BNCState', 2});
 
 sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add delay after stimulus presentation
     'Timer', cDecisionGap, ...
     'StateChangeConditions', {'Tup', 'MoveSpout'},...
-    'OutputActions', {});
+    'OutputActions', {'BNCState', 2});
 
 sma = AddState(sma, 'Name', 'MoveSpout', ... %move spouts towards the animal so it can report its choice
     'Timer', 0.1, ...
