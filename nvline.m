@@ -2,14 +2,15 @@ function nvline(x,varargin)
 
 a = gca;
 if ishold(a)
-    checker = true;
+    checker = false;
 else
-    hold(a,'on'); checker = false;
+    hold(a,'on'); checker = true;
 end
 
 for xx = 1 : length(x)
     plot([x(xx),x(xx)],a.YLim,varargin{:});
 end
-if ~checker
+
+if checker
     hold(a,'off');
 end

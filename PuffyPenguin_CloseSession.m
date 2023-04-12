@@ -1,9 +1,15 @@
 %PuffyPenguin_CloseSession
 tic
-if S.SaveSettings %if current settings should be saved to file
-    S.SaveSettings = false; %set variable back to false before saving
-    ProtocolSettings = BpodSystem.ProtocolSettings;
+
+% check if optoSeq is active and make sure optogenetics are disabled at session end
+if S.optoSeqActive
+    BpodSystem.ProtocolSettings.optoProb = 0;
 end
+
+% save settings
+ProtocolSettings = BpodSystem.ProtocolSettings;
+fname = BpodSystem.GUIData.SettingsFileName;
+save(fname, 'ProtocolSettings');
 
 % Move spouts to reset position.
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
