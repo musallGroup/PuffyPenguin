@@ -41,7 +41,7 @@ catch
         try
             disp(Ports{i});
             W = BpodWavePlayer(Ports{i});
-            S.wavePort = Ports{i};
+            BpodSystem.ProtocolSettings.wavePort = Ports{i};
             fprintf('Analog output module found on port %s\n.', Ports{i})
             break
         end
@@ -121,7 +121,7 @@ catch
     for i = 1 : length(Ports)
         try
             A = BpodAnalogIn(Ports{i});
-            S.analogInPort = Ports{i}; disp(Ports{i});
+            BpodSystem.ProtocolSettings.analogInPort = Ports{i}; disp(Ports{i});
             break
         end
     end
@@ -131,8 +131,8 @@ if isempty(A)
     warning('No analog input module found. Session aborted.');
     BpodSystem.Status.BeingUsed = 0;
 else
-    A.Thresholds = [0.06 0.06 0.02 0.02 1 1 1 1]; %set thresholds for photodiode
-    A.ResetVoltages = [0.02 0.02 0.06 0.06 0 0 0 0]; %set thresholds for reset
+    A.Thresholds = [0.1 0.1 0.02 0.02 1 1 1 1]; %set thresholds for photodiode
+    A.ResetVoltages = [0.04 0.04 0.06 0.06 0 0 0 0]; %set thresholds for reset
     A.InputRange = {'-2.5V:2.5V'  '-2.5V:2.5V'  '-2.5V:2.5V'  '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V' '-2.5V:2.5V'};
     A.SMeventsEnabled(1:4) = true;
     A.startReportingEvents();
@@ -170,12 +170,12 @@ catch
     % check for analog module by finding a serial device that can create a waveplayer object
     clear R; R = [];
     Ports = FindSerialPorts; % get available serial com ports
-    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
-    Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
+    Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.wavePort)); %don't use output module port
+    Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.analogInPort)); %don't use input module port
     for i = 1 : length(Ports)
         try
             R = RotaryEncoderModule(Ports{i});
-            S.rotaryEncoderPort = Ports{i};
+            BpodSystem.ProtocolSettings.rotaryEncoderPort = Ports{i};
             fprintf('Rotary encoder module found on port %s\n.', Ports{i})
             break
         end
@@ -183,7 +183,6 @@ catch
 end
 
 if isempty(R)
-    S.rotaryEncoderPort = [];
     BpodSystem.ProtocolSettings.rotaryEncoderPort = [];
     warning('!!! No rotary encoder module found. Wheel data will not be available in SessionData !!!');
 end
@@ -203,7 +202,7 @@ catch
         try
             AB = AmbientModule(Ports{i});
             AB.getMeasurements;
-            S.ambientPort = Ports{i};
+            BpodSystem.ProtocolSettings.ambientPort = Ports{i};
             break
         catch
             clear AB
@@ -212,11 +211,9 @@ catch
 end
 
 if ~exist('AB', 'var') || isempty(AB) 
-    S.ambientPort = [];
+    BpodSystem.ProtocolSettings.ambientPort = [];
     warning('!!! No ambient module found. Ambient data will not be available in SessionData !!!');
 end
-
-BpodSystem.ProtocolSettings = S; % Adds the currently used settings to the Bpod struct
 
 %% Stimulus parameters - Create trial types list (single vs double stimuli)
 maxTrials = 5000;
@@ -227,6 +224,7 @@ BpodSystem.Data.TrialStartTime = [];
 tmp = strsplit(bhvFile,'_');
 dataPath = fullfile(dataPath,[tmp{end-1} '_' tmp{end}]);
 BpodSystem.Path.CurrentDataFile = fullfile(dataPath, bhvFile);
+if ~exist(dataPath,'dir'),mkdir(dataPath),end %create folder for data files
 
 %% Initialize camera, control GUI and feedback plots
 if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
@@ -258,44 +256,56 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
             udplabcams.TimeOut = 1;
             fopen(udplabcams);
             
-            % check if labcams is connected already.
+            % check if labcams is connected already and start otherwise.
+            labcamResponds = false;
             fwrite(udplabcams,'ping'); pause(0.05);
             if udplabcams.BytesAvailable > 0
-                fgetl(udplabcams);
+                strcmpi(fgetl(udplabcams), 'pong');
+                labcamResponds = true;
                 disp(' -> labcams connected.');
+
             else
                 %%
                 disp(' -> starting labcams');
-                if ~isunix
-                    labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
-                    pause(5); tic;
-                    if ~labcamsproc.HasExited
-                        while labcamsproc.Responding && toc < 10
-                            fwrite(udplabcams,'ping')
-                            tmp = fgetl(udplabcams);
-                            if ~isempty(tmp)
-                                break
-                            end
-                        end
-                    else
-                        disp('Labcams is not responding. Are cameras connected and working?')
-                        clear udplabcams
+
+                % start labcams and allow some time to come up
+                labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
+                pause(5); 
+
+                % try to communicate via UDP for 10 seconds
+                tic;
+                while toc < 10
+                    fwrite(udplabcams,'ping')
+                    if strcmpi(fgetl(udplabcams), 'pong')
+                        labcamResponds = true;
+                        break
                     end
-                else
-                    % labcams needs to be installed to use system python
-                    % for this to work
-                    system('LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH export LD_LIBRARY_PATH;gnome-terminal -- labcams -w')
-                    for i =  1:100
-                        fwrite(udplabcams,'ping')
-                        tmp = fgetl(udplabcams);
-                        pause(0.1)
-                        if ~isempty(tmp)
-                            break
-                        end
+                end
+                fclose(udplabcams);
+
+                % check again on default labcams address
+                fclose(udplabcams);
+                tmp = strsplit(DefaultSettings.labcamsAddress,':');
+                udpAddress = tmp{1};
+                udpPort = str2num(tmp{2});
+                udplabcams = udp(udpAddress,udpPort);
+                udplabcams.TimeOut = 1;
+                fopen(udplabcams);
+                
+                tic;
+                while toc < 10
+                    fwrite(udplabcams,'ping')
+                    tmp = fgetl(udplabcams);
+                    if strcmpi(tmp, 'pong')
+                        labcamResponds = true;
+                        BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
+                        break
                     end
-                    if isempty(tmp)
-                        clear udplabcams
-                    end
+                end
+
+                if ~labcamResponds
+                    disp('Labcams is not responding. Are cameras connected and working?')
+                    clear udplabcams
                 end
             end
             

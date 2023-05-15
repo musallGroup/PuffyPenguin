@@ -103,6 +103,8 @@ DefaultSettings.PunishSoundDur = 0; % (s) Duration of white noise punish sound w
 DefaultSettings.blackScreen = false; %flag to set screens to black when no visual stimulation is used. This stops the visual stim server.
 DefaultSettings.stimScreens = [3 4]; %ID number of screens that should be used for visual stimulation.
 DefaultSettings.showWater = false; %flag to present a water drop during the pre-stimulus period.
+DefaultSettings.maxDetectionSequence = true; % rather to always present the maximum number of target cues in detection trials or not?
+DefaultSettings.distDifficulties = 1:5; % Difficuilties to uniformly present in discrim. trials
 
 % Stimulus presentation settings
 DefaultSettings.ProbRight = 0.5; %Probability for occurence of a target presentation on the right.

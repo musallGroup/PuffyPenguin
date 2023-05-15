@@ -77,16 +77,17 @@ for iTrials = 1 : maxTrials
         setMotorPositions;
         
         %% check for weird bytes. This maybe happens if the touchshaker sends a lot of false lick bytes? Broken cable?
-        BpodSystem.Data.weirdBytes = false;
+        BpodSystem.Data.weirdBytes(iTrials) = false;
         while BpodSystem.SerialPort.bytesAvailable > 0 %clear excess bytes from bpod that aquired from ITI
             disp('!!! Something really weird is going on with the serial communication to Bpod !!!');
             disp(BpodSystem.SerialPort.bytesAvailable);
             BpodSystem.SerialPort.read(BpodSystem.SerialPort.bytesAvailable, 'uint8'); %remove all bytes from serial port
             pause(0.01);
-            BpodSystem.Data.weirdBytes = true;
+            BpodSystem.Data.weirdBytes(iTrials) = true;
         end
         
         %% run bpod and save data after trial is finished
+        setMotorPositions;
         PuffyPenguin_StateMachine; %produce state machine and upload to bpod
 
         % set the frame number just before starting

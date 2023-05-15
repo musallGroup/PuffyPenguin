@@ -15,6 +15,11 @@ stimRates(~useChannels) = 0;
 coherence = S.StimCoherence;
 noiseStim = S.UseNoise;
 
+% check if S.TargFractions should be 1 for detection trial
+if S.maxDetectionSequence == 1 && any(sum(useChannels,2) == 0)
+    S.TargFractions = 1;
+end
+
 %% Generate individual event waveforms
 %auditory stimuli (multifrequency convolved click)
 tt = -pi:2*pi*1000/(sRate*S.BeepDuration):pi;tt=tt(1:end-1);

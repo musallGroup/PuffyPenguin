@@ -135,7 +135,7 @@ float leverOut = 0; // outer lever position.
 float leverAdjust = 0; // lever position via adjust_lever commands.
 float leverCurrent = 0; // current lever position
 
-float spoutSpeed = 25000; // duration of the spout movement in us.
+float spoutSpeed = 50000; // duration of the spout movement in us.
 float leverSpeed = 50000; // duration of the lever movement in us. this is the time it takes the lever to move from the outer to the inner position or vice versa.
 unsigned long lSpoutClocker = micros(); // timer to modulate speed of left spout
 unsigned long rSpoutClocker = micros(); // timer to modulate speed of right spout

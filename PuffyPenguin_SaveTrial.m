@@ -86,15 +86,18 @@ if length(fieldnames(RawEvents)) > 1
 
     % display trial counts for vision, somatosensory and somatovisual
     for iMods = [1 4 5]
-
         % detection
         trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 1 & BpodSystem.Data.StimType == iMods);
-        disp(['Self performed DETECTION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
+        totalCnt = sum(BpodSystem.Data.Assisted & BpodSystem.Data.Modality == 1 & BpodSystem.Data.StimType == iMods);
+        rewardCnt = sum(BpodSystem.Data.Rewarded & BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 1 & BpodSystem.Data.StimType == iMods);
+
+        disp(['Self performed DETECTION ' cModality{iMods} ': ' num2str(trialCnt) ' trials (' num2str(totalCnt) ' total); Performance: ' num2str(rewardCnt/trialCnt)]);
 
         % discrimination
         trialCnt = sum(BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 2 & BpodSystem.Data.StimType == iMods);
-        disp(['Self performed DISCRIMINATION ' cModality{iMods} ': ' num2str(trialCnt) ' trials']);
-
+        totalCnt = sum(BpodSystem.Data.Assisted & BpodSystem.Data.Modality == 2 & BpodSystem.Data.StimType == iMods);
+        rewardCnt = sum(BpodSystem.Data.Rewarded & BpodSystem.Data.Assisted & ~BpodSystem.Data.DidNotChoose & BpodSystem.Data.Modality == 2 & BpodSystem.Data.StimType == iMods);
+        disp(['Self performed DISCRIMINATION ' cModality{iMods} ': ' num2str(trialCnt) ' trials (' num2str(totalCnt) ' total); Performance: ' num2str(rewardCnt/trialCnt)]);
     end
 end
 

@@ -5,6 +5,8 @@ LeftIn = round(S.lInnerLim,2) - S.ServoPos(1); %left inner position - bias offse
 RightIn = round(S.rInnerLim,2) - S.ServoPos(2); %right inner position - bias offset
 LeftOut = LeftIn - S.spoutOffset; %left outer position
 RightOut = RightIn - S.spoutOffset; %right outer position
+if LeftOut < 0; LeftOut = 0; end
+if RightOut < 0; RightOut = 0; end
 if exist('SingleSpout','var')
     if SingleSpout
         if correctSide == 1 %correct side is left
@@ -30,10 +32,7 @@ cVal = [length(LeftIn) length(RightIn) length(LeftOut) length(RightOut) length(L
     LeftIn RightIn LeftOut RightOut LeverIn LeverOut];
 
 % send trial information to teensy and move spouts/lever to outer position
-
-% teensyWrite([70 cVal])% send spout/lever information to teensy at trial start
 teensyWrite([70 uint8(cVal)]);% send spout/lever information to teensy at trial start
-teensyWrite(105); % Move handles to outer position
 teensyWrite(106); % Move both spouts to outer position
 
 % this needs to wait for everything to move before releasing the function.

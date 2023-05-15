@@ -203,18 +203,49 @@ if TrialType == 1
     S.TargFractions = 1;
 end
 
-% pick fraction for distractor side
-distFrac = Sample(S.DistFractions);
-
 %% create analog waveforms
 checker = true; %make sure there is an unequal amount of stimuli on both sides
 while checker
     
-    [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
+    % pick probability fraction for distractor side
+    distFrac = Sample(BpodSystem.ProtocolSettings.DistFractions); 
+
+    if TrialType == 1  % this is the detection trial case
+        cDist = NaN; drawnow;
+
+    else  % discrimination trial case
+        % pick required target-distractor difference for current trial
+        cDist = Sample(BpodSystem.ProtocolSettings.distDifficulties); drawnow;
+    end
+
+    while true
+        [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
+        
+        if isnan(cDist)
+            break
+        else
+            leftStimCnt = max(cellfun(@sum,binSeq([1 3 5])));
+            rightStimCnt = max(cellfun(@sum,binSeq([2 4 6])));
+
+            if abs(leftStimCnt - rightStimCnt) == cDist
+                % this is the discrimination trial
+                if and(leftStimCnt > 0, rightStimCnt > 0)
+                    % only break if we have at least one distractor
+                    break
+                end
+            end
+
+            if cDist > 0 && distFrac == 0
+                disp('Distractor fraction is 0 - cant return requested distractor difficulty');
+                disp('Trial set to detection trial.');
+                break
+            end
+        end
+    end
+
     if isempty(Signal)
         Signal = zeros(8,2);
     end
-%     cellfun(@sum,binSeq)
     checker = false;
     
     for x = [1 3 5]
@@ -223,6 +254,7 @@ while checker
         end
     end
 end
+
 %% create string for visual stimuli
 % vision left - only works for 3s, 2Hz stimuli right now
 leftString = 'left_000000';
