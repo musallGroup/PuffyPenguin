@@ -142,7 +142,7 @@ if ismember(StimType,[2 3 6 7]) %if auditory stimulation is required
     else
         useChannels(2) = 1; %use right channel
     end
-    if S.useDistAudio
+    if S.useDistAudio || any(ismember(StimType,[3 6 7]))
         if TrialType == 2
             useChannels(:,1) = [1,1]; %use both channels
         end
@@ -156,7 +156,7 @@ if ismember(StimType,[1 3 5 7]) %if visual stimulation is required
     else
         useChannels(4) = 1; %use right channel
     end
-    if S.useDistVisual
+    if S.useDistVisual || any(ismember(StimType,[ 3 5 7]))
         if TrialType == 2
             useChannels(:,2) = [1,1]; %use both channels
         end
@@ -170,7 +170,7 @@ if ismember(StimType,4:7) %if somatosensory stimulation is required
     else
         useChannels(6) = 1; %use right channel
     end
-    if S.useDistTactile
+    if S.useDistTactile || any(ismember(StimType,[5 6 7]))
         if TrialType == 2
             useChannels(:,3) = [1,1]; %use both channels
         end
@@ -217,7 +217,8 @@ while checker
         % pick required target-distractor difference for current trial
         cDist = Sample(BpodSystem.ProtocolSettings.distDifficulties); drawnow;
     end
-
+    
+    Cnt = 0;
     while true
         [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
         
@@ -240,6 +241,12 @@ while checker
                 disp('Trial set to detection trial.');
                 break
             end
+        end
+        
+        Cnt = Cnt + 1;
+        if Cnt == 1000
+            warning('!!!Could not find target-distractor difference after 1000 attemps. Check settings!!!')
+            break
         end
     end
 
