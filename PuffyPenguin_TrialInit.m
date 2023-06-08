@@ -86,7 +86,15 @@ else
 end
 
 %% Determine the inter-trial interval (soft interval) from a gamma dist
+
+% instead of using scale and shape for gamma distribution, ITI_scale refers
+% to the mean ITI and shape refers to standard deviation. This is to make
+% using these variables easier. Shape shold always be 1 by default and we
+% will limit the max ITI to 30 seconds.
 ITIjitter = 0;
-while ITIjitter < 0.33*S.ITI_shape || ITIjitter > 3*S.ITI_shape
-    ITIjitter = gamrnd(S.ITI_shape,S.ITI_scale);
+while ITIjitter < 0.1*S.ITI_scale || ITIjitter > 10*S.ITI_scale
+    k = (S.ITI_scale/S.ITI_shape)^2;
+    theta = S.ITI_shape^2/S.ITI_scale;
+    ITIjitter = gamrnd(k, theta);
 end
+

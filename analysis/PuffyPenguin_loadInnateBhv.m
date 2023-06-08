@@ -3,7 +3,7 @@ function [bhv, Performance] = PuffyPenguin_loadInnateBhv(Animals, cPath, newRun)
 if strcmpi(Animals, 'CStr')
     Animals = {'2480', '2481', '2482', '2484', '2485'};
 elseif strcmpi(Animals, 'EMX')
-    Animals =  {'2463', '2464'};
+    Animals =  {'2523' '2524' '2525' '2526'};
 end
     
 if ~exist('newRun', 'var')
