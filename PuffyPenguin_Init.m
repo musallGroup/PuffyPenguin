@@ -53,7 +53,7 @@ if isempty(W)
     BpodSystem.Status.BeingUsed = 0;
 else
     clear W %clear waveplayer object to make sure it uses default values
-    W = BpodWavePlayer(S.wavePort);
+    W = BpodWavePlayer(BpodSystem.ProtocolSettings.wavePort);
 end
 
 W.OutputRange = '-5V:5V'; % make sure output range is correct
@@ -281,25 +281,26 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                         break
                     end
                 end
-                fclose(udplabcams);
                 
                 % check again on default labcams address
-                fclose(udplabcams);
-                tmp = strsplit(DefaultSettings.labcamsAddress,':');
-                udpAddress = tmp{1};
-                udpPort = str2num(tmp{2});
-                udplabcams = udp(udpAddress,udpPort);
-                udplabcams.TimeOut = 1;
-                fopen(udplabcams);
-                
-                tic;
-                while toc < 10
-                    fwrite(udplabcams,'ping')
-                    tmp = fgetl(udplabcams);
-                    if strcmpi(tmp, 'pong')
-                        labcamResponds = true;
-                        BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
-                        break
+                if ~labcamResponds
+                    fclose(udplabcams);
+                    tmp = strsplit(DefaultSettings.labcamsAddress,':');
+                    udpAddress = tmp{1};
+                    udpPort = str2num(tmp{2});
+                    udplabcams = udp(udpAddress,udpPort);
+                    udplabcams.TimeOut = 1;
+                    fopen(udplabcams);
+
+                    tic;
+                    while toc < 10
+                        fwrite(udplabcams,'ping')
+                        tmp = fgetl(udplabcams);
+                        if strcmpi(tmp, 'pong')
+                            labcamResponds = true;
+                            BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
+                            break
+                        end
                     end
                 end
                 
@@ -386,3 +387,4 @@ AssistRecord = false(1,maxTrials);
 LastBias = 1; %last trial were bias correction was used
 PrevStimLoudness = S.StimLoudness; %variable to check if loudness has changed
 singleSpoutBias = false; %flag to indicate if single spout was presented to counter bias
+S = BpodSystem.ProtocolSettings; % Load settings chosen in launch manager into current workspace as a struct S
