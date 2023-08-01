@@ -13,7 +13,6 @@ Ports = FindSerialPorts; % get available serial com ports
 for i = 1 : length(Ports)
     try
         W = BpodWavePlayer(Ports{i});
-        S.wavePort = Ports{i};
         fprintf('Analog output module found on port %s\n.', Ports{i})
         break
     end

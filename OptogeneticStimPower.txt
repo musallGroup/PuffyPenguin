@@ -1,0 +1,17 @@
+Channel 3:
+1V = 0.63mW
+2V = 1.19mW
+3V = 1.67mW
+4V = 2.09mW
+5V = 2.47mW
+
+
+Channel 4:
+1V = 0.54mW
+2V = 1.01mW
+3V = 1.42mW
+4V = 1.78mW
+5V = 2.11mW
+
+Calibration date: 06.12.2022
+400um fiber, Nilufar

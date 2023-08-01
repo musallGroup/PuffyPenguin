@@ -36,17 +36,31 @@ catch
     % check for analog module by finding a serial device that can create a waveplayer object
     W = [];
     Ports = FindSerialPorts; % get available serial com ports
-    
+
     for i = 1 : length(Ports)
         try
             disp(Ports{i});
-            W = BpodWavePlayer(Ports{i});
+            cPort = serialport(Ports{i}, 115200, 'TimeOut', 0.1);
+            cPort.write(227, 'uint8');
+            response = cPort.read(1, 'uint8');
+            
+            if response ~= 228 || isempty(response)
+                error('Could not connect = ( ')
+            end
+
             BpodSystem.ProtocolSettings.wavePort = Ports{i};
+            clear cPort
+
+            W = BpodWavePlayer(Ports{i}); %check if analog module com port is correct
+
             fprintf('Analog output module found on port %s\n.', Ports{i})
             break
         end
+        clear cPort
     end
 end
+clear cPort
+
 
 if isempty(W)
     warning('No analog output module found. Session aborted.');
@@ -107,8 +121,8 @@ BpodSystem.ProtocolSettings.capacitiveTouchThresholds = res;
 %set spout speed
 val = BpodSystem.ProtocolSettings.SpoutSpeed; %SpoutSpeed
 teensyWrite([73 length(num2str(val)) num2str(val)]);
-
-
+     
+       
 %% check for analog input module
 clear A
 try
@@ -145,11 +159,11 @@ end
 % Screen('Preference', 'Verbosity', 0);
 % Screen('Preference', 'SkipSyncTests',1);
 % Screen('Preference', 'VisualDebugLevel',0);
-%
+% 
 % for x = screenNumber
 %     window = Screen('OpenWindow', x, 0); %open ptb window and save handle in pSettings
 %     pause(0.1)
-%
+% 
 %     for y = 1 : 2
 %         Screen('FillRect', window, 255);
 %         Screen('Flip', window);
@@ -210,7 +224,7 @@ catch
     end
 end
 
-if ~exist('AB', 'var') || isempty(AB)
+if ~exist('AB', 'var') || isempty(AB) 
     BpodSystem.ProtocolSettings.ambientPort = [];
     warning('!!! No ambient module found. Ambient data will not be available in SessionData !!!');
 end
@@ -230,7 +244,7 @@ if ~exist(dataPath,'dir'),mkdir(dataPath),end %create folder for data files
 if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
     %%
     BpodNotebook('init');
-    
+  
     BpodSystem.GUIHandles.PuffyPenguin = PuffyPenguin_GUI;
     %BpodSystem.Data.animalWeight = str2double(newid('Enter animal weight (in grams)')); %ask for animal weight and save
     BpodSystem.GUIHandles.PuffyPenguin.getSettingsFromBpod();
@@ -245,8 +259,8 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
     cObj = BpodSystem.GUIHandles.PuffyPenguin.optoSeqActive;
     cCallBack = cObj.ValueChangedFcn;
     cCallBack(cObj, []); %confirm value change in GUI to inactivate the correctfields
-    
-    %% initialize communication with labcams to get videos
+
+	%% initialize communication with labcams to get videos
     if isfield(BpodSystem.ProtocolSettings,'labcamsAddress')
         if ~isempty(BpodSystem.ProtocolSettings.labcamsAddress)
             tmp = strsplit(BpodSystem.ProtocolSettings.labcamsAddress,':');
@@ -263,15 +277,15 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 strcmpi(fgetl(udplabcams), 'pong');
                 labcamResponds = true;
                 disp(' -> labcams connected.');
-                
+
             else
                 %%
                 disp(' -> starting labcams');
-                
+
                 % start labcams and allow some time to come up
                 labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
-                pause(5);
-                
+                pause(5); 
+
                 % try to communicate via UDP for 10 seconds
                 tic;
                 while toc < 10
@@ -281,29 +295,28 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                         break
                     end
                 end
-                
-                % check again on default labcams address
-                if ~labcamResponds
-                    fclose(udplabcams);
-                    tmp = strsplit(DefaultSettings.labcamsAddress,':');
-                    udpAddress = tmp{1};
-                    udpPort = str2num(tmp{2});
-                    udplabcams = udp(udpAddress,udpPort);
-                    udplabcams.TimeOut = 1;
-                    fopen(udplabcams);
+                fclose(udplabcams);
 
-                    tic;
-                    while toc < 10
-                        fwrite(udplabcams,'ping')
-                        tmp = fgetl(udplabcams);
-                        if strcmpi(tmp, 'pong')
-                            labcamResponds = true;
-                            BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
-                            break
-                        end
+                % check again on default labcams address
+                fclose(udplabcams);
+                tmp = strsplit(DefaultSettings.labcamsAddress,':');
+                udpAddress = tmp{1};
+                udpPort = str2num(tmp{2});
+                udplabcams = udp(udpAddress,udpPort);
+                udplabcams.TimeOut = 1;
+                fopen(udplabcams);
+                
+                tic;
+                while toc < 10
+                    fwrite(udplabcams,'ping')
+                    tmp = fgetl(udplabcams);
+                    if strcmpi(tmp, 'pong')
+                        labcamResponds = true;
+                        BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
+                        break
                     end
                 end
-                
+
                 if ~labcamResponds
                     disp('Labcams is not responding. Are cameras connected and working?')
                     clear udplabcams
@@ -369,7 +382,7 @@ if exist(calPath, 'file')
         end
     end
 else
-    warning('!!! No optogenetic calibration file found. Make sure this is OK !!!');
+    warning('!!!!!!! No optogenetic calibration file found. Make sure that is OK for your experiment !!!!!!');
 end
 BpodSystem.ProtocolSettings.optoPower = optoPower;
 
@@ -387,4 +400,4 @@ AssistRecord = false(1,maxTrials);
 LastBias = 1; %last trial were bias correction was used
 PrevStimLoudness = S.StimLoudness; %variable to check if loudness has changed
 singleSpoutBias = false; %flag to indicate if single spout was presented to counter bias
-S = BpodSystem.ProtocolSettings; % Load settings chosen in launch manager into current workspace as a struct S
+

@@ -32,7 +32,7 @@ for iRecs = 1 : length(recs)
             Cnt = Cnt + 1;
             for iMods = 1 : length(modIdx)
                 allTrialCnt(iMods,Cnt) = sum(bhv.StimType == modIdx(iMods));
-                cIdx = bhv.StimType == modIdx(iMods) & bhv.Assisted & ~bhv.DidNotChoose & bhv.distFrac == 0;
+                cIdx = bhv.StimType == modIdx(iMods) & bhv.Assisted & ~bhv.DidNotChoose & bhv.Modality == 1;
                 perf(iMods,Cnt) = sum(bhv.Rewarded(cIdx)) / sum(cIdx);
                 perfTrialCnt(iMods,Cnt) = sum(cIdx);
             end
