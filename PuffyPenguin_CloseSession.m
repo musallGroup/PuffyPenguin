@@ -49,7 +49,7 @@ if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') %if server responds
         set(BpodSystem.GUIHandles.PuffyPenguin.StopButton,'FontColor',[100,255,100])
         drawnow;
     end
-    if ~BpodSystem.ProtocolSettings.serverPath(end) == filesep
+    if ~(BpodSystem.ProtocolSettings.serverPath(end) == filesep)
         BpodSystem.ProtocolSettings.serverPath = [BpodSystem.ProtocolSettings.serverPath filesep];
     end
     serverPath = strrep(BpodSystem.Path.CurrentDataFile,...

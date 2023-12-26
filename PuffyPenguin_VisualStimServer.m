@@ -20,7 +20,7 @@ end
         
 %% initialize communication with visual stimulation server
 if startVisServer
-    batPath = [BpodSystem.Path.ProtocolFolder, BpodSystem.ProtocolSettings.paradigmName, filesep, 'VisualStimulusClient.bat'];
+    batPath = fullfile(BpodSystem.Path.ProtocolFolder, BpodSystem.ProtocolSettings.paradigmName, 'VisualStimulusClient.bat');
     
     system(['"' batPath '" &']); %start visual stimulus client
     pause(3);
