@@ -20,6 +20,9 @@
 #define HIGH_DIR_S HIGH
 #endif
 
+#define RESTART_ADDR 0xE000ED0C
+#define READ_RESTART() (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
 
 // –--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--
 // This version includes:
@@ -244,11 +247,15 @@ void serialEvent1() {
   FSMheader = Serial1COM.readByte();
   switch (FSMheader) {
     case HWRESET:
-    _reboot_Teensyduino_();
+      Serial1.write(OK);
+      delayMicroseconds(5000); // wait a moment to make sure response byte is written
+      WRITE_RESTART(0x5FA0004);
       break;
+      
     case MODULE_INFO: // return module information to bpod
         returnModuleInfo();
         break;
+        
     case START_TRIAL:
       if (Serial1.available() > 6) {
         for (int i = 0; i < 6; i++)  // get number of characters for each variable (6 in total)
