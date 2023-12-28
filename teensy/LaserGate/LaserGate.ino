@@ -20,7 +20,7 @@
 #define PIN_CAMTRIG 14 // camera trigger that can be switched by serial command 'MAKE_CAMTRIGGER'
 
 // output for FISBA module 1
-#define PIN_GND_1 5 // make this the ground pin for laser 1
+#define PIN_GND_1 6 // make this the ground pin for laser 1
 #define PIN_RED_1 2 // trigger that is used to enable red (625nm) output from laser 1
 #define PIN_CYAN_1 3 // trigger that is used to enable cyan (488nm) output from laser 1 - CARFEUL this is referred to as 'green' in the FISBA nomenclature but its really more blue-ish and should be used for most optogenetics
 #define PIN_BLUE_1 4 // trigger that is used to enable violet (405nm) output from laser 1 - CARFEUL this is referred to as 'blue' in the FISBA nomenclature but really violet
@@ -59,32 +59,62 @@ ArCOM Serial1COM(Serial1); // UART serial port
 #define CHANGE_ENABLETRIGGERS 150 // identifier to adjust trigger output lines (expects two subsequent bytes: a number between 1-3 to enable either red (1), cyan(2) or violet(3) output for each module
 #define CHANGE_VALVETRIGGERS 151 // identifier to adjust valve trigger output lines (expects one subsequent byte for valve1 (1), valve2 (2) or both (3))
 
-#define GOT_BYTE 10 // positive handshake for module_info
-#define GOT_TRIGGER 11 // positive handshake for trigger command
+#define GATE_BLUE1 160 // identifier to immediately create enable signal for blue1
+#define GATE_CYAN1 161 // identifier to immediately create enable signal for cyan1
+#define GATE_RED1 162 // identifier to immediately create enable signal for red1
+#define GATE_BLUE2 163 // identifier to immediately create enable signal for blue2
+#define GATE_CYAN2 164 // identifier to immediately create enable signal for cyan2
+#define GATE_RED2 165 // identifier to immediately create enable signal for red2
+#define GATE_BLUE_BOTH 166 // identifier to immediately create enable signal for both blue laser
+#define GATE_CYAN_BOTH 167 // identifier to immediately create enable signal for both cyan laser
+#define GATE_RED_BOTH 168 // identifier to immediately create enable signal for both red laser
+
+#define STOP_BLUE1 170 // identifier to immediately stop enable signal for blue1
+#define STOP_CYAN1 171 // identifier to immediately stop enable signal for cyan1
+#define STOP_RED1 172 // identifier to immediately stop enable signal for red1
+#define STOP_BLUE2 173 // identifier to immediately stop enable signal for blue2
+#define STOP_CYAN2 174 // identifier to immediately stop enable signal for cyan2
+#define STOP_RED2 175 // identifier to immediately stop enable signal for red2
+#define STOP_BLUE_BOTH 176 // identifier to immediately stop enable signal for both blue laser
+#define STOP_CYAN_BOTH 177 // identifier to immediately stop enable signal for both cyan laser
+#define STOP_RED_BOTH 178 // identifier to immediately stop enable signal for both red laser
+
+// return bytes
+#define GOT_TRIGGER 14 // positive handshake for trigger command
 #define DID_ABORT 15 // negative handshake for incoming bytes
+#define HWRESET 128 // byte to reset teensy code
+#define MODULE_INFO 255 // byte to return module info
 
 // Other variables
 bool midRead = false;
 int FSMheader = 0;
 unsigned long clocker = millis();
 unsigned long camClocker = millis();
+unsigned long gateClocker = millis();
 unsigned long trialClocker = millis();
 unsigned long stimClocker = millis();
 int stimDur = 10; // duration of stimulus trigger in ms
 int trialDur = 50; // duration of trial trigger in ms
 int camDur = 30000; // maximal duration of camera trigger in ms (if no stop byte is received)
+int gateDur = 60000; // maximal duration of gate trigger in ms (if no stop byte is received)
 bool stimTrigger = false;
 bool trialTrigger = false;
 bool camTrigger = false;
+bool gateTrigger = false;
 byte cByte = 0; // temporary variable for serial communication
 volatile int enable_1 = PIN_RED_1; //current enable line for laser module 1
 volatile int enable_2 = PIN_RED_2; //current enable line for laser module 2
 volatile int valveByte = 1; // which valve should be triggered in response to PIN_VALVE_IN
 
+#define RESTART_ADDR 0xE000ED0C
+#define READ_RESTART() (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void setup() {
 
-  Serial.begin(11520);
+  Serial1.begin(1312500); //baud rate for UART bpod serial communication
+  Serial.begin(9600); // USB baud rate
 
   // Set pin modes for digital output lines
   pinMode(PIN_STIMTRIG, OUTPUT);
@@ -224,6 +254,172 @@ void loop() {
       camTrigger = false;
     }
   }
+
+  // check gate trigger
+  if (gateTrigger) {
+    if ((millis() - gateClocker) > gateDur) {  // done with camera trigger
+      digitalWriteFast(PIN_BLUE_1, LOW);
+      digitalWriteFast(PIN_CYAN_1, LOW);
+      digitalWriteFast(PIN_RED_1, LOW);
+      digitalWriteFast(PIN_BLUE_2, LOW);
+      digitalWriteFast(PIN_CYAN_2, LOW);
+      digitalWriteFast(PIN_RED_2, LOW);
+      gateTrigger = false;
+    }
+  }
+}
+
+// for Bpod communication 
+void serialEvent1() {
+  FSMheader = Serial1COM.readByte();
+  
+  switch (FSMheader) {
+  case HWRESET:
+    Serial1.write(GOT_TRIGGER);
+    delayMicroseconds(5000); // wait a moment to make sure response byte is written
+    WRITE_RESTART(0x5FA0004);
+    break;
+    
+  case MODULE_INFO: // return module information to bpod
+      returnModuleInfo();
+      break;
+
+  case CHANGE_ENABLETRIGGERS: // check which enable lines should be used for laser modules 1 and 2
+    // check laser l
+    cByte = Serial1COM.readByte();
+    if (cByte == 1) {enable_1 = PIN_RED_1;} // enable red line
+    else if (cByte == 2) {enable_1 = PIN_CYAN_1;} // enable 488nm line
+    else if (cByte == 3) {enable_1 = PIN_BLUE_1;} // enable 405nm line
+    else {Serial.write(DID_ABORT);}
+  
+    // check laser 2
+    cByte = Serial1COM.readByte();
+    if (cByte == 1) {enable_2 = PIN_RED_2;} // enable red line
+    else if (cByte == 2) {enable_2 = PIN_CYAN_2;} // enable 488nm line
+    else if (cByte == 3) {enable_2 = PIN_BLUE_2;} // enable 405nm line
+    else {Serial1.write(DID_ABORT);}
+  
+    // done
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  // enable signals
+  case GATE_BLUE1: // gate blue 1
+    digitalWriteFast(PIN_BLUE_1, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_CYAN1: // gate cyan 1
+    digitalWriteFast(PIN_CYAN_1, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_RED1: // gate red 1
+    digitalWriteFast(PIN_RED_1, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_BLUE2: // gate blue 2
+    digitalWriteFast(PIN_BLUE_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_CYAN2: // gate cyan 2
+    digitalWriteFast(PIN_CYAN_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_RED2: // gate red 2
+    digitalWriteFast(PIN_RED_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_BLUE_BOTH: // gate blue both
+    digitalWriteFast(PIN_BLUE_1, HIGH);
+    digitalWriteFast(PIN_BLUE_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_CYAN_BOTH: // gate cyan both
+    digitalWriteFast(PIN_CYAN_1, HIGH);
+    digitalWriteFast(PIN_CYAN_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case GATE_RED_BOTH: // gate red both
+    digitalWriteFast(PIN_RED_1, HIGH);
+    digitalWriteFast(PIN_RED_2, HIGH);
+    gateClocker = millis();
+    gateTrigger = true;
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  // disable signals
+  case STOP_BLUE1: // stop blue 1
+    digitalWriteFast(PIN_BLUE_1, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_CYAN1: // stop cyan 1
+    digitalWriteFast(PIN_CYAN_1, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_RED1: // stop red 1
+    digitalWriteFast(PIN_RED_1, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_BLUE2: // stop blue 2
+    digitalWriteFast(PIN_BLUE_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_CYAN2: // stop cyan 2
+    digitalWriteFast(PIN_CYAN_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_RED2: // stop red 2
+    digitalWriteFast(PIN_RED_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_BLUE_BOTH: // stop blue both
+    digitalWriteFast(PIN_BLUE_1, LOW);
+    digitalWriteFast(PIN_BLUE_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_CYAN_BOTH: // stop cyan both
+    digitalWriteFast(PIN_CYAN_1, LOW);
+    digitalWriteFast(PIN_CYAN_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  case STOP_RED_BOTH: // stop red both
+    digitalWriteFast(PIN_RED_1, LOW);
+    digitalWriteFast(PIN_RED_2, LOW);
+    Serial1.write(GOT_TRIGGER);
+    break;
+
+  } 
 }
 
 // interrupts

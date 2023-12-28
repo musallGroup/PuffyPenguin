@@ -296,8 +296,7 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 tic;
                 while toc < 10
                     fwrite(udplabcams,'ping')
-                    resp = fgetl(udplabcams);
-                    if strcmpi(resp, 'pong') || strcmpi(resp, 'ok=pong')
+                    if strcmpi(fgetl(udplabcams), 'pong')
                         labcamResponds = true;
                         break
                     end
@@ -316,8 +315,8 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 tic;
                 while toc < 10
                     fwrite(udplabcams,'ping')
-                    resp = fgetl(udplabcams);
-                    if strcmpi(resp, 'pong') || strcmpi(resp, 'ok=pong')
+                    tmp = fgetl(udplabcams);
+                    if strcmpi(tmp, 'pong')
                         labcamResponds = true;
                         BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
                         break
