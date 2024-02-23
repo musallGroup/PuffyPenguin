@@ -29,34 +29,28 @@ serverPath = [BpodSystem.ProtocolSettings.serverPath filesep BpodSystem.Protocol
 
 %% ensure analog output module is present and set up communication
 clear W
-try
+
+checkOut = PuffyPenguin_checkPort(S.wavePort, 'wavePlayer'); %check port for waveplayer module
+if checkOut
     W = BpodWavePlayer(S.wavePort); %check if analog module com port is correct
     fprintf('Analog output module found on port %s\n.', S.wavePort)
-catch
+
+else
     % check for analog module by finding a serial device that can create a waveplayer object
     W = [];
     Ports = FindSerialPorts; % get available serial com ports
 
     for i = 1 : length(Ports)
-        try
-            disp(Ports{i});
-            cPort = serialport(Ports{i}, 115200, 'TimeOut', 0.1);
-            cPort.write(227, 'uint8');
-            response = cPort.read(1, 'uint8');
-            
-            if response ~= 228 || isempty(response)
-                error('Could not connect = ( ')
-            end
 
+        checkOut = PuffyPenguin_checkPort(Ports{i}, 'wavePlayer'); %check port for waveplayer module
+
+        if checkOut
             BpodSystem.ProtocolSettings.wavePort = Ports{i};
-            clear cPort
-
             W = BpodWavePlayer(Ports{i}); %check if analog module com port is correct
 
             fprintf('Analog output module found on port %s\n.', Ports{i})
             break
         end
-        clear cPort
     end
 end
 clear cPort
@@ -95,6 +89,8 @@ if checker
 end
 
 % check teensy module - this does not work if not connected to the computer
+teensyWrite(128); %reset teensy module first to make sure we are starting fresh
+pause(1);
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
 
 % setting thresholds - move to outer
@@ -124,22 +120,32 @@ teensyWrite([73 length(num2str(val)) num2str(val)]);
      
        
 %% check for analog input module
-clear A
-try
+A = [];
+S.analogInPort = 'COM7';
+checkOut = true;
+% checkOut = PuffyPenguin_checkPort(S.analogInPort, 'analogIn'); %check port for waveplayer module
+
+if checkOut
     A = BpodAnalogIn(S.analogInPort); %check if analog module com port is correct
-catch
-    % check for analog module by finding a serial device that can create a waveplayer object
-    A = []; try BpodWavePlayer(S.analogInPort);end %waveplayer somehow helps to free up the port
+    fprintf('Analog input module found on port %s\n.', S.analogInPort)
+    
+else
     Ports = FindSerialPorts; % get available serial com ports
-    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
+    Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.wavePort)); %don't use output module port
+
     for i = 1 : length(Ports)
-        try
+
+        checkOut = PuffyPenguin_checkPort(Ports{i}, 'analogIn'); %check port for waveplayer module
+
+        if checkOut
+            BpodSystem.ProtocolSettings.analogInPort = Ports{i};
             A = BpodAnalogIn(Ports{i});
-            BpodSystem.ProtocolSettings.analogInPort = Ports{i}; disp(Ports{i});
+
             break
         end
     end
 end
+S = BpodSystem.ProtocolSettings; %update S
 
 if isempty(A)
     warning('No analog input module found. Session aborted.');
@@ -290,8 +296,7 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 tic;
                 while toc < 10
                     fwrite(udplabcams,'ping')
-                    resp = fgetl(udplabcams);
-                    if strcmpi(resp, 'pong') || strcmpi(resp, 'ok=pong')
+                    if strcmpi(fgetl(udplabcams), 'pong')
                         labcamResponds = true;
                         break
                     end
@@ -310,8 +315,8 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 tic;
                 while toc < 10
                     fwrite(udplabcams,'ping')
-                    resp = fgetl(udplabcams);
-                    if strcmpi(resp, 'pong') || strcmpi(resp, 'ok=pong')
+                    tmp = fgetl(udplabcams);
+                    if strcmpi(tmp, 'pong')
                         labcamResponds = true;
                         BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
                         break

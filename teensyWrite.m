@@ -48,6 +48,7 @@ try
 
     end
 end
+
 %     
 % %check 2nd input
 % if ~exist('stopParadigm','var') || isempty(stopParadigm)
