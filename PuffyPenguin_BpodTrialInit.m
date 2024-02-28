@@ -18,7 +18,12 @@ if S.WaitForCam > 0 %check whether cameraa72 trigger is required to trigger tria
     CamTrig = 'BNC1High';
 end
 
-if TrialSidesList(iTrials) == 0 %target is left
+leftTarget = TrialSidesList(iTrials) == 0; %target is left;
+if BpodSystem.ProtocolSettings.contingencyReversal
+    leftTarget = ~leftTarget; %animal should respond on opposite side from target to get reward
+end
+
+if leftTarget %target is left
     LeftPortAction = 'CheckReward';
     pLeftPortAction = 'CheckReward';
     cLeftPortAction = 'Reward';

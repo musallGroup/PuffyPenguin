@@ -83,7 +83,7 @@ optoPower2 = NaN;
 
 stimEvents = [stimEvents, cell(1,2)]; %add events for optogenetics at the end of stimEvents
 triggerOptoStim = false; %flag to check if optogenetic trial should be presented
-if ~SingleSpout
+% if ~SingleSpout
     if StimType == 1
         triggerOptoStim = rand < (S.optoProb / S.fractionTrainingVision);
     elseif StimType == 2
@@ -93,7 +93,7 @@ if ~SingleSpout
     else
         triggerOptoStim = rand < S.optoProb;
     end
-end
+% end
 
 if triggerOptoStim
 

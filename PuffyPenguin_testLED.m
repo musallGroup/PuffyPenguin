@@ -1,4 +1,5 @@
 function PuffyPenguin_testLED(chanID, ledPower, duration)
+global BpodSystem
 
 % chanID = 3;
 % ledPower = 1:5;
@@ -10,11 +11,21 @@ if ledPower > 5; ledPower = 5; disp('LED power cant be larger than 5V!!'); end
 W = [];
 Ports = FindSerialPorts; % get available serial com ports
 
-for i = 1 : length(Ports)
+%check for existing port
+if exist('BpodSystem', 'var')
     try
-        W = BpodWavePlayer(Ports{i});
-        fprintf('Analog output module found on port %s\n.', Ports{i})
-        break
+        W = BpodWavePlayer(BpodSystem.ProtocolSettings.wavePort);
+        fprintf('Analog output module found on port %s\n.', BpodSystem.ProtocolSettings.wavePort)
+    end
+end
+
+if isempty(W)
+    for i = 1 : length(Ports)
+        try
+            W = BpodWavePlayer(Ports{i});
+            fprintf('Analog output module found on port %s\n.', Ports{i})
+            break
+        end
     end
 end
 
@@ -26,9 +37,25 @@ W.TriggerMode = 'Master'; %output can be interrupted by new stimulus triggers
 for iPower = 1 : length(ledPower)
     W.loadWaveform(10,ones(1, W.SamplingRate * duration) .* ledPower(iPower));
     W.TriggerProfiles(10, chanID) = 10; %this will generate a square wave on channel 'chanID'
+    
+    % send laser enable signal
+    if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
+        teensyWrite_LaserGate(166);
+        teensyWrite_LaserGate(167);
+        teensyWrite_LaserGate(168);
+    end
+
     W.play(10)
     disp(['Current power: ' num2str(ledPower(iPower)) 'V on channel ' num2str(chanID)]);
-    pause(2+duration);
+    pause(duration);
+
+    % stop laser enable signal
+    if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
+        teensyWrite_LaserGate(176);
+        teensyWrite_LaserGate(177);
+        teensyWrite_LaserGate(178);
+    end
+    pause(2);
 end
 
 W.loadWaveform(10,zeros(1, 10));
