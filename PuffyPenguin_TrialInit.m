@@ -3,7 +3,7 @@
 BpodSystem.ProtocolSettings.cTrial = iTrials; %log current trial ID in bpod object
 BpodSystem.Data.cTrial = iTrials; %log current trial ID in bpod object
 S = BpodSystem.ProtocolSettings; %update settings for this trial
-     
+
 % set analog input lines to zero at black indicator
 A.setZero()
 

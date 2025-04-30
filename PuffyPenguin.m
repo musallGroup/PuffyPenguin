@@ -69,7 +69,7 @@ for iTrials = 1 : maxTrials
         %% create ITI jitter
         trialPrep = toc; %check how much time was used to prepare trial and subtract from ITI
         if (ITIjitter - trialPrep - 0.1)*1000  > 0 % removing the 0.1 because there is a delay in sending the state machine
-            %disp(['ITI ' , num2str(ITIjitter), 's'])
+            disp(['ITI ' , num2str(ITIjitter), 's'])
             java.lang.Thread.sleep((ITIjitter - trialPrep - 0.1)*1000); %wait a moment to get to determined ITI
         end
         

@@ -11,6 +11,10 @@ cAnimal = BpodSystem.ProtocolSettings.SubjectName;
 cPath = [BpodSystem.ProtocolSettings.serverPath cAnimal ...
     '\PuffyPenguin\Session Data'];
 
+if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') && ~exist(cPath, 'dir')
+    mkdir(cPath)
+end
+
 if ~exist(cPath, 'dir')
     error('Could not find server location for behavioral data.');
 end

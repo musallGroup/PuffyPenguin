@@ -122,7 +122,7 @@ teensyWrite([73 length(num2str(val)) num2str(val)]);
 %% check for analog input module
 A = [];
 % S.analogInPort = 'COM7';
-% checkOut = true;
+% checkOut = false;
 checkOut = PuffyPenguin_checkPort(S.analogInPort, 'analogIn'); %check port for waveplayer module
 
 if checkOut
@@ -210,15 +210,15 @@ end
 
 %% check for ambient module
 clear AB
-try
-    AB = AmbientModule(S.ambientPort); %check if ambient module com port is correct
-catch
-    % check for analog module by finding a serial device that can create a waveplayer object
-    Ports = FindSerialPorts; % get available serial com ports
-    Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
-    Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
-    Ports = Ports(~strcmpi(Ports, S.rotaryEncoderPort)); %don't use rotary encoder port
-    for i = 1 : length(Ports)
+% try
+%     AB = AmbientModule(S.ambientPort); %check if ambient module com port is correct
+% catch
+%     % check for analog module by finding a serial device that can create a waveplayer object
+%     Ports = FindSerialPorts; % get available serial com ports
+%     Ports = Ports(~strcmpi(Ports, S.wavePort)); %don't use output module port
+%     Ports = Ports(~strcmpi(Ports, S.analogInPort)); %don't use input module port
+%     Ports = Ports(~strcmpi(Ports, S.rotaryEncoderPort)); %don't use rotary encoder port
+%     for i = 1 : length(Ports)
 %         try
 %             AB = AmbientModule(Ports{i});
 %             AB.getMeasurements;
@@ -227,8 +227,8 @@ catch
 %         catch
 %             clear AB
 %         end
-    end
-end
+%     end
+% end
 
 if ~exist('AB', 'var') || isempty(AB) 
     BpodSystem.ProtocolSettings.ambientPort = [];
@@ -285,43 +285,43 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 disp(' -> labcams connected.');
 
             else
-                %%
-                disp(' -> starting labcams');
-
-                % start labcams and allow some time to come up
+%                 %%
+%                 disp(' -> starting labcams');
+% 
+%                 % start labcams and allow some time to come up
 %                 labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
-                pause(5); 
-
-                % try to communicate via UDP for 10 seconds
-                tic;
-                while toc < 10
-                    fwrite(udplabcams,'ping')
-                    if strcmpi(fgetl(udplabcams), 'pong')
-                        labcamResponds = true;
-                        break
-                    end
-                end
-                fclose(udplabcams);
-
-                % check again on default labcams address
-                fclose(udplabcams);
-                tmp = strsplit(DefaultSettings.labcamsAddress,':');
-                udpAddress = tmp{1};
-                udpPort = str2num(tmp{2});
-                udplabcams = udp(udpAddress,udpPort);
-                udplabcams.TimeOut = 1;
-                fopen(udplabcams);
-                
-                tic;
-                while toc < 10
-                    fwrite(udplabcams,'ping')
-                    tmp = fgetl(udplabcams);
-                    if strcmpi(tmp, 'pong')
-                        labcamResponds = true;
-                        BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
-                        break
-                    end
-                end
+%                 pause(5); 
+% 
+%                 % try to communicate via UDP for 10 seconds
+%                 tic;
+%                 while toc < 10
+%                     fwrite(udplabcams,'ping')
+%                     if strcmpi(fgetl(udplabcams), 'pong')
+%                         labcamResponds = true;
+%                         break
+%                     end
+%                 end
+%                 fclose(udplabcams);
+% 
+%                 % check again on default labcams address
+%                 fclose(udplabcams);
+%                 tmp = strsplit(DefaultSettings.labcamsAddress,':');
+%                 udpAddress = tmp{1};
+%                 udpPort = str2num(tmp{2});
+%                 udplabcams = udp(udpAddress,udpPort);
+%                 udplabcams.TimeOut = 1;
+%                 fopen(udplabcams);
+%                 
+%                 tic;
+%                 while toc < 10
+%                     fwrite(udplabcams,'ping')
+%                     tmp = fgetl(udplabcams);
+%                     if strcmpi(tmp, 'pong')
+%                         labcamResponds = true;
+%                         BpodSystem.ProtocolSettings.labcamsAddress = DefaultSettings.labcamsAddress;
+%                         break
+%                     end
+%                 end
 
                 if ~labcamResponds
                     disp('Labcams is not responding. Are cameras connected and working?')
@@ -396,7 +396,7 @@ BpodSystem.ProtocolSettings.optoPower = optoPower;
 BpodSystem.ProtocolSettings.optoFits = cell(4,1);
 for x = 1 : length(optoPower)
     if ~isempty(optoPower{x})
-        BpodSystem.ProtocolSettings.optoFits{x} = polyfit(optoPower{x}(:,2),optoPower{x}(:,1), 1);
+        BpodSystem.ProtocolSettings.optoFits{x} = spline(optoPower{x}(:,2),optoPower{x}(:,1));
     end
 end
 
