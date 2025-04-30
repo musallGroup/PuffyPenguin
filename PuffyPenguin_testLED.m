@@ -39,21 +39,24 @@ for iPower = 1 : length(ledPower)
     W.TriggerProfiles(10, chanID) = 10; %this will generate a square wave on channel 'chanID'
     
     % send laser enable signal
-    if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
-        teensyWrite_LaserGate(166);
-        teensyWrite_LaserGate(167);
-        teensyWrite_LaserGate(168);
+    if ~isempty(BpodSystem)
+        if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
+            teensyWrite_LaserGate(166);
+            teensyWrite_LaserGate(167);
+            teensyWrite_LaserGate(168);
+        end
     end
-
     W.play(10)
     disp(['Current power: ' num2str(ledPower(iPower)) 'V on channel ' num2str(chanID)]);
     pause(duration);
 
     % stop laser enable signal
-    if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
-        teensyWrite_LaserGate(176);
-        teensyWrite_LaserGate(177);
-        teensyWrite_LaserGate(178);
+    if ~isempty(BpodSystem)
+        if any(contains(BpodSystem.Modules.Name, 'LaserGate1'))
+            teensyWrite_LaserGate(176);
+            teensyWrite_LaserGate(177);
+            teensyWrite_LaserGate(178);
+        end
     end
     pause(2);
 end

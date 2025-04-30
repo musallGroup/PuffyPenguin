@@ -220,6 +220,12 @@ while checker
     
     Cnt = 0;
     while true
+
+        distFrac = (1 - (cDist / S.StimRate)) / (1/S.TargFractions(1)); %adjust distractor frequency to make it more likely to get sequence with the right amount of stimuli. This is the distance from the target, normalized by the target fraction.
+        BpodSystem.ProtocolSettings.DistFractions = distFrac; %update GUI
+        S.DistFractions = distFrac; %just to be sure
+
+        % create stimulus
         [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
         
         if isnan(cDist)
@@ -261,6 +267,9 @@ while checker
         end
     end
 end
+
+%give some feedback
+% fprintf('Left number of pulses: %d, Right number of pulses: %d\n', leftStimCnt, rightStimCnt);
 
 %% create string for visual stimuli
 % vision left - only works for 3s, 2Hz stimuli right now

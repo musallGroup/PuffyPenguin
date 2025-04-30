@@ -147,8 +147,8 @@ if triggerOptoStim
     end
 
     %% get control voltage for each opto channel
-    optoPower1 = ppval(S.optoFits{3}, S.optoAmp1); %recover control voltage from spline interpolation of calibration curve
-    optoPower2 = ppval(S.optoFits{4}, S.optoAmp2); %recover control voltage from spline interpolation of calibration curve
+    optoPower1 = polyval(S.optoFits{3}, S.optoAmp1); %recover control voltage from spline interpolation of calibration curve
+    optoPower2 = polyval(S.optoFits{4}, S.optoAmp2); %recover control voltage from spline interpolation of calibration curve
     
     % check if requested optogenetic power is within calibration and not too high
     %left

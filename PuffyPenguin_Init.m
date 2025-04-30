@@ -289,7 +289,7 @@ if BpodSystem.Status.BeingUsed %only run this code if protocol is still active
                 disp(' -> starting labcams');
 
                 % start labcams and allow some time to come up
-                labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
+%                 labcamsproc = System.Diagnostics.Process.Start('labcams.exe','-w');
                 pause(5); 
 
                 % try to communicate via UDP for 10 seconds
@@ -396,7 +396,7 @@ BpodSystem.ProtocolSettings.optoPower = optoPower;
 BpodSystem.ProtocolSettings.optoFits = cell(4,1);
 for x = 1 : length(optoPower)
     if ~isempty(optoPower{x})
-        BpodSystem.ProtocolSettings.optoFits{x} = spline(optoPower{x}(:,2),optoPower{x}(:,1));
+        BpodSystem.ProtocolSettings.optoFits{x} = polyfit(optoPower{x}(:,2),optoPower{x}(:,1), 1);
     end
 end
 

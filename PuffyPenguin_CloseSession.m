@@ -24,9 +24,9 @@ sca;
 try
     if exist('udplabcams','var')
         fwrite(udplabcams,sprintf('log=end'));fgetl(udplabcams);
-        fwrite(udplabcams,sprintf('softtrigger=0'));fgetl(udplabcams);
+%         fwrite(udplabcams,sprintf('softtrigger=0'));fgetl(udplabcams);
         fwrite(udplabcams,sprintf('manualsave=0'));fgetl(udplabcams);
-        fwrite(udplabcams,sprintf('quit=1'))
+%         fwrite(udplabcams,sprintf('quit=1'))
         fclose(udplabcams);
         clear udplabcams
         hasvideo = 1;
