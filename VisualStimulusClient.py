@@ -69,8 +69,8 @@ class MyClient:
 
 if __name__ == '__main__':
     root_path = r'E:\Bpod Local\visualStim'
-    left_monitor_id = 2
-    right_monitor_id = 3
+    left_monitor_id = 3
+    right_monitor_id = 2
 
     # start TCP-client
     client = MyClient()
