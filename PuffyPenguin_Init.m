@@ -248,6 +248,7 @@ tmp = strsplit(bhvFile,'_');
 dataPath = fullfile(dataPath,[tmp{end-1} '_' tmp{end}]);
 BpodSystem.Path.CurrentDataFile = fullfile(dataPath, bhvFile);
 if ~exist(dataPath,'dir'),mkdir(dataPath),end %create folder for data files
+alarmState = []; %for audio indicator function
 
 %% Initialize camera, control GUI and feedback plots
 if BpodSystem.Status.BeingUsed %only run this code if protocol is still active

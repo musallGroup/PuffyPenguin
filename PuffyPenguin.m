@@ -74,13 +74,13 @@ for iTrials = 1 : maxTrials
         BpodSystem.Data.cTrial = iTrials;
     
         %% run main scripts to prepare current trial
-        PuffyPenguin_TrialInit %check basic variables (timing etc for current stimulus)
-        PuffyPenguin_StimulusInit %set up simuli for different modalities/sides etc and generate analog waveforms
-        PuffyPenguin_AutoReward %check if single spouts should be given, based on trainingsstatus
-        PuffyPenguin_OptoInit %set up optogenetic stimuli for left/right and at what point in the trial
-        PuffyPenguin_BpodTrialInit %prepare variables for state machine
-        PuffyPenguin_DisplayTrialData %show current trial stuff on GUI
-        
+        PuffyPenguin_TrialInit; %check basic variables (timing etc for current stimulus)
+        PuffyPenguin_StimulusInit; %set up simuli for different modalities/sides etc and generate analog waveforms
+        PuffyPenguin_AutoReward; %check if single spouts should be given, based on trainingsstatus
+        PuffyPenguin_OptoInit; %set up optogenetic stimuli for left/right and at what point in the trial
+        PuffyPenguin_BpodTrialInit; %prepare variables for state machine
+        PuffyPenguin_DisplayTrialData; %show current trial stuff on GUI
+
         %% create ITI jitter
         trialPrep = toc; %check how much time was used to prepare trial and subtract from ITI
         if (ITIjitter - trialPrep - 0.1)*1000  > 0 % removing the 0.1 because there is a delay in sending the state machine
@@ -122,6 +122,7 @@ for iTrials = 1 : maxTrials
         
         try
             BpodSystem.GUIHandles.PuffyPenguin.update_performance_plots;
+            alarmState = PuffyPenguin_checkMouseWarnings(alarmState); %give audio indicator if the behavior is potentially biased
         catch
             disp('Could not update performance plots.')
         end
