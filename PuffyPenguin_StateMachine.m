@@ -91,8 +91,7 @@ end
 sma = AddState(sma, 'Name', 'PinchCheck', ... %check if pinch valve should be opened
     'Timer', 0, ...
     'StateChangeConditions', {'Tup', nextState},...
-    'OutputActions', {});
-%     'OutputActions', {'TouchShaker1', pinchByte});
+    'OutputActions', {'TouchShaker1', pinchByte});
 
 sma = AddState(sma, 'Name', 'VisualStim', ... %start visual stimulation, wait for feedback from photodiodes
     'Timer', 5, ...
@@ -150,8 +149,7 @@ sma = AddState(sma, 'Name', 'AutoReward', ... %autoreward on correct side
 sma = AddState(sma, 'Name', 'PinchOpen', ... %make sure pinch valves are open again
     'Timer', 0, ...
     'StateChangeConditions', {'Tup', 'DelayPeriod'},...
-    'OutputActions', {});
-%     'OutputActions', {'TouchShaker1', pinchOpenByte, 'BNCState', 2});
+    'OutputActions', {'TouchShaker1', pinchOpenByte, 'BNCState', 2});
 
 sma = AddState(sma, 'Name', 'DelayPeriod', ... %Add delay after stimulus presentation
     'Timer', cDecisionGap, ...

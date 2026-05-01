@@ -1,0 +1,85 @@
+PUFFYPENGUIN DIRECTORY COMPARISON REPORT
+Generated: 2026-05-01
+Directory A (GitHub):    C:\Users\kampaimaging\Documents\GitHub\PuffyPenguin
+Directory B (Bpod Local): D:\Bpod Local\Protocols\PuffyPenguin
+================================================================================
+
+FILES WITH DIFFERENT CONTENT (10 files)
+----------------------------------------
+
+File                                      | GitHub (A)                              | Bpod Local (B)
+------------------------------------------|------------------------------------------|------------------------------------------
+.idea/.name                               | References VisualStimulus.py            | References VisualStimulusClient.bat
+.idea/PuffyPenguin.iml                    | Inherited JDK                           | Python 3.7 SDK (MS_task_gerion_V2_0)
+.idea/misc.xml                            | Python 3.8                              | Python 3.7
+VisualStimulusClient.bat                  | Python 3.7.0 path                       | Python 3.7.3 path
+VisualStimulusClient.py                   | Differs in content                      | Differs in content
+PuffyPenguin.m                            | No water button enable/disable          | Has water button (GiveLeft/Right/Both)
+                                          | during pause                            | enable/disable during pause
+PuffyPenguin_Init.m                       | teensyWrite(128) active                 | teensyWrite(128) commented out
+PuffyPenguin_backgroundScreen.m           | Gray value = 128                        | Gray value = 64
+PuffyPenguin_checkPerformance.m           | Minor whitespace difference             | Minor whitespace difference
+teensy/TouchShaker/TouchShaker.ino        | No restart macros; pins 15,16,19,20     | Has RESTART macros; pins 15,16,22,23
+
+
+FILES ONLY IN GITHUB (A) — 43 files
+-------------------------------------
+Hardware/CAD:
+  parts/step/headbarholderclamprev5.stp
+  parts/step/headposthldrev5.stp
+  parts/stl/parts from Aachen/FirFly adapter (various)
+  parts/stl/parts from Aachen/Monitor mount clamps
+  parts/stl/parts from Aachen/Platform
+  parts/stl/parts from Aachen/RFID Holder
+  parts/stl/parts from Aachen/wheel designs
+  parts/stl/parts from Aachen/stepper parts
+  pcb/Breakout/Basal Forebrain Group/Schematic/CAMOutputs/Assembly/
+  pcb/Breakout/Basal Forebrain Group/Schematic/CAMOutputs/DrillFiles/
+  pcb/Breakout/Basal Forebrain Group/Schematic/CAMOutputs/GerberFiles/
+  pcb/Breakout/ ODB files, PNG, ZIP (first design breakout board files)
+
+Firmware:
+  teensy/LEDramper/ArCOM.cpp
+  teensy/LEDramper/ArCOM.h
+  teensy/LEDramper/LEDramper.ino
+
+Other:
+  pcb/~$use for PuffyPenguin controller.docx  (temp file)
+
+
+FILES ONLY IN BPOD LOCAL (B) — 10 files
+-----------------------------------------
+IDE/Configuration:
+  .idea/vcs.xml
+  .idea/workspace.xml
+
+Python cache:
+  __pycache__/VisualStimulus.cpython-37.pyc
+  (Note: GitHub has cpython-38.pyc instead)
+
+Hardware/CAD:
+  parts/stl/parts from Aachen/12x_clear-Monitor_mount_clamp_bottom_fixed.stl
+  parts/stl/parts from Aachen/12x_clear-Monitor_mount_clamp_top_fixed.stl
+  parts/stl/parts from Aachen/2p-PT-holder.stl
+  parts/stl/parts from Aachen/FirFly adapter with 3mm holes (variant)
+  parts/stl/parts from Aachen/spout assembly variants
+
+Code:
+  smaPassiveHabituation.m   *** NOT IN GITHUB — consider committing ***
+
+
+================================================================================
+SUMMARY
+
+The Bpod Local copy contains active experimental customizations:
+  - Darker screen background (gray 64 vs 128)
+  - Water buttons enabled/disabled during pause
+  - Teensy reset commented out
+  - Different Teensy touch sensor pins (22,23 vs 19,20)
+  - Running Python 3.7 (GitHub uses 3.8)
+
+The GitHub copy has more hardware design files (Breakout PCB designs, LEDramper firmware).
+
+ACTION RECOMMENDED: smaPassiveHabituation.m exists only in Bpod Local and should
+likely be committed to the GitHub repository.
+================================================================================

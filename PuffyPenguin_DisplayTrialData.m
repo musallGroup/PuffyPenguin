@@ -8,5 +8,5 @@ disp(['Target: ' num2str(S.StimRate) ' Hz - ' cSide, ' - Dist. Fraction: ' num2s
 try
     BpodSystem.GUIHandles.PuffyPenguin.prepareTrial(TrialSidesList);
 catch
-    disp('Could not update trial information plots.')
+    disp('Could not update performance plots.')
 end

@@ -40,7 +40,17 @@ if BpodSystem.ProtocolSettings.blackScreen
             % remove screens with open PTB windows
             useScreens(ismember(useScreens, foundScreens)) = [];
             for x = useScreens
-                window = Screen('OpenWindow', x, 128); %open ptb window and save handle in pSettings
+                window = Screen('OpenWindow', x, 64); %open ptb window and save handle in pSettings
+            end
+
+            % draw gray rectangle on all open stim screen windows to ensure
+            % gray background (sometime they open as black)
+            windowPtrs = Screen('Windows');
+            for x = 1 : length(windowPtrs)
+                if ismember(Screen('WindowScreenNumber', windowPtrs(x)), BpodSystem.ProtocolSettings.stimScreens)
+                    Screen('FillRect', windowPtrs(x), 64);
+                    Screen('Flip', windowPtrs(x));
+                end
             end
         end
     end

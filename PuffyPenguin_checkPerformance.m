@@ -8,7 +8,11 @@ modIdx = [1 2 4 5]; %modalities to check (as identified by modlabels above)
 try %make sure this doesnt cause an error
 cAnimal = BpodSystem.ProtocolSettings.SubjectName;
 
-cPath = fullfile(BpodSystem.ProtocolSettings.serverPath, cAnimal, 'PuffyPenguin', 'Session Data');
+
+% cPath = [BpodSystem.ProtocolSettings.serverPath cAnimal ...
+%     '\PuffyPenguin\Session Data'];
+cPath = [BpodSystem.Path.DataFolder cAnimal ...
+    '\PuffyPenguin\Session Data'];
 
 if exist(BpodSystem.ProtocolSettings.serverPath, 'dir') && ~exist(cPath, 'dir')
     mkdir(cPath)

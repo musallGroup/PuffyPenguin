@@ -7,7 +7,7 @@ if startVisServer
 
         tic
         fwrite(BpodSystem.PluginObjects.udpVisual,'Ping');
-        while toc <0.5
+        while toc <0.1
             if BpodSystem.PluginObjects.udpVisual.BytesAvailable > 0
                 fgetl(BpodSystem.PluginObjects.udpVisual);
                 startVisServer = false;

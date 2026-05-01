@@ -13,12 +13,12 @@ if ~BpodSystem.Status.InStateMatrix
     ModuleWrite('TouchShaker1',bytes);
     res = 0;
     for i=1:4
-%         try ME
+        try
             Byte = ModuleRead('TouchShaker1', 1);
-%         catch ME
-%             disp(['Did not return from: ', num2str(bytes)])
-%             Byte = 0;
-%         end
+        catch
+            disp(['Did not return from: ', num2str(bytes)])
+            Byte = 0;
+        end
         if Byte
             res = Byte == 14; %positve handshake received
             break

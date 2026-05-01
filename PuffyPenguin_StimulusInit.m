@@ -221,19 +221,19 @@ while checker
     Cnt = 0;
     while true
 
-        distFrac = (1 - (cDist / (S.StimRate * S.StimDuration))) / (1/S.TargFractions(1)); %adjust distractor frequency to make it more likely to get sequence with the right amount of stimuli. This is the distance from the target, normalized by the target fraction.
-        BpodSystem.ProtocolSettings.DistFractions = distFrac; %update GUI if bpod settings are translated (does not seem to be the case right now)
-        S.DistFractions = distFrac; %just to be sure its in the internal settings
-        BpodSystem.GUIHandles.PuffyPenguin.distractorEditField.Value = num2str(distFrac); %update GUI for sure!
+        distFrac = (1 - (cDist / S.StimRate)) / (1/S.TargFractions(1)); %adjust distractor frequency to make it more likely to get sequence with the right amount of stimuli. This is the distance from the target, normalized by the target fraction.
+        BpodSystem.ProtocolSettings.DistFractions = distFrac; %update GUI
+        S.DistFractions = distFrac; %just to be sure
 
         % create stimulus
         [Signal,stimEvents,binSeq] = PuffyPenguin_BinnedStimSequence(useChannels, stimDur, TrialSidesList(iTrials), distFrac); %produce stim sequences and event log
-        leftStimCnt = max(cellfun(@sum,binSeq([1 3 5])));
-        rightStimCnt = max(cellfun(@sum,binSeq([2 4 6])));
-
+        
         if isnan(cDist)
             break
         else
+            leftStimCnt = max(cellfun(@sum,binSeq([1 3 5])));
+            rightStimCnt = max(cellfun(@sum,binSeq([2 4 6])));
+
             if abs(leftStimCnt - rightStimCnt) == cDist
                 % this is the discrimination trial
                 if and(leftStimCnt > 0, rightStimCnt > 0)
@@ -269,7 +269,7 @@ while checker
 end
 
 %give some feedback
-fprintf('Left number of pulses: %d, Right number of pulses: %d\n', leftStimCnt, rightStimCnt);
+% fprintf('Left number of pulses: %d, Right number of pulses: %d\n', leftStimCnt, rightStimCnt);
 
 %% create string for visual stimuli
 % vision left - only works for 3s, 2Hz stimuli right now
