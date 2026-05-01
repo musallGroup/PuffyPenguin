@@ -89,7 +89,7 @@ if checker
 end
 
 % check teensy module - this does not work if not connected to the computer
-teensyWrite(128); %reset teensy module first to make sure we are starting fresh
+% teensyWrite(128); %reset teensy module first to make sure we are starting fresh
 pause(1);
 teensyWrite([71 1 '0' 1 '0']); % Move spouts to zero position
 
@@ -183,19 +183,20 @@ end
 
 %% check for rotary encoder module
 clear R; R = [];
-try
-    R = RotaryEncoderModule(S.rotaryEncoderPort); %check if rotary encoder module com port is correct
+checkOut = PuffyPenguin_checkPort(S.rotaryEncoderPort, 'rotaryEncoder');
+
+if checkOut
+    R = RotaryEncoderModule(S.rotaryEncoderPort);
     fprintf('Rotary encoder module found on port %s\n.', S.rotaryEncoderPort)
-catch
-    % check for analog module by finding a serial device that can create a waveplayer object
-    clear R; R = [];
+else
     Ports = FindSerialPorts; % get available serial com ports
     Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.wavePort)); %don't use output module port
     Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.analogInPort)); %don't use input module port
     for i = 1 : length(Ports)
-        try
-            R = RotaryEncoderModule(Ports{i});
+        checkOut = PuffyPenguin_checkPort(Ports{i}, 'rotaryEncoder');
+        if checkOut
             BpodSystem.ProtocolSettings.rotaryEncoderPort = Ports{i};
+            R = RotaryEncoderModule(Ports{i});
             fprintf('Rotary encoder module found on port %s\n.', Ports{i})
             break
         end

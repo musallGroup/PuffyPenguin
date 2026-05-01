@@ -33,5 +33,19 @@ elseif strcmpi(moduleType, 'analogIn')
         disp(['Found ' moduleType ' on port ' checkPort])
     end
 
+elseif strcmpi(moduleType, 'rotaryEncoder')
+    try
+        cPort = serialport(checkPort, 115200, 'TimeOut', 0.1);
+        cPort.write('C', 'uint8');
+        response = cPort.read(1, 'uint8');
+    end
+
+    if isempty(response) || response ~= 217
+        disp(['Could not connect to ' moduleType])
+    else
+        foundModule = true;
+        disp(['Found ' moduleType ' on port ' checkPort])
+    end
+
 end
 clear cPort

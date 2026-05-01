@@ -1,4 +1,3 @@
-
 #include "Arduino.h"
 #include "ArCOM.h"
 
@@ -20,6 +19,9 @@
 #define HIGH_DIR_S HIGH
 #endif
 
+#define RESTART_ADDR 0xE000ED0C
+#define READ_RESTART() (*(volatile uint32_t *)RESTART_ADDR)
+#define WRITE_RESTART(val) ((*(volatile uint32_t *)RESTART_ADDR) = (val))
 
 // –--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--–--
 // This version includes:
@@ -50,10 +52,10 @@ const int sRateLever = 10; // This is the number of ms for outputs to be during 
 #define PIN_CAMTIMER 3 // Trigger to synchronize camera acquisition. Sends TTL for 'camTrigDur' with an inter-pulse of 'camTrigRate'.
 
 // Inputs for lick sensors
-#define LEVERSENSOR_L 19 // touch line for lever touch
-#define LEVERSENSOR_R 20 // touch line for lever touch
-#define SPOUTSENSOR_L 15 // touch line for left spout
-#define SPOUTSENSOR_R 16 // touch line for right spout
+#define LEVERSENSOR_L 15 // touch line for lever touch
+#define LEVERSENSOR_R 16 // touch line for lever touch
+#define SPOUTSENSOR_L 22 // touch line for left spout
+#define SPOUTSENSOR_R 23 // touch line for right spout
 // Pins for stepper - spouts
 #define PIN_SPOUTOUT_L 5
 #define PIN_SPOUTOUT_R 6
@@ -164,8 +166,6 @@ bool lMovesAdjust = false; // flag to indicate that lever is moving to outward p
 unsigned long spoutClocker_L = millis(); // timer to measure duration of left lick
 unsigned long spoutClocker_R = millis(); // timer to measure duration of right lick
 
-bool checkFlag = false;
-
 // Touch variables
 int touchAdjustDur = 2000; // time used to re-adjust touch levels if neccessary. This will infer the mean (in the first hald) and standard deviation (in the second half) of the read-noise to infer decent thresholds for touch.
 int touchThresh = 3; // threshold for touch event in standard deviation units.
@@ -178,7 +178,7 @@ float touchVal = 0; // temporary variable for usb communication
 long int sampleCnt[] = {0, 0}; // counter for samples during touch adjustment
 unsigned long adjustClocker = millis(); // timer for re-adjustment of touch lines
 float runningAvg[2] = { 0, 0 }; // current values for the four touch lines (left spout, right spout, left, handle, right handle)
-float avgWeight = 1; // weight of past values when converving to a constant offset. Higher values mean that traces take more time to go back to zero.
+float avgWeight = 50; // weight of past values when converving to a constant offset. Higher values mean that traces take more time to go back to zero.
 
 // Other variables
 bool midRead = false;
@@ -194,12 +194,9 @@ int stimDur = 100; // duration of stimulus trigger in ms
 int trialDur = 50; // duration of trial trigger in ms
 float temp[10]; // temporary variable for general purposes
 int camTrigRate = 90; // rate of camera trigger in Hz.
-bool quickSmooth = false; // flag to chose whether or not to apply some smoothing to the spout/handle signals
-int smoothCnt = 3; // number of samples to use for running average when using quickSmooth
 
 unsigned long usbClocker = millis();
 int usbRate = 10;
-
 /* #################################################
   ##################### CAMERA TRIGGER ###############
   #################################################### */
@@ -236,22 +233,25 @@ void setup() {
   pinMode(PIN_SPOUTOUT_R, INPUT_PULLUP);
   pinMode(PIN_LEVEROUT_L, INPUT_PULLUP);
   pinMode(PIN_LEVEROUT_R, INPUT_PULLUP);
-  touchData[0] = analogRead(SPOUTSENSOR_L);
-  touchData[1] = analogRead(SPOUTSENSOR_R);
-  touchData[2] = analogRead(LEVERSENSOR_L);
-  touchData[3] = analogRead(LEVERSENSOR_R);
+  touchData[0] = touchRead(SPOUTSENSOR_L);
+  touchData[1] = touchRead(SPOUTSENSOR_R);
+  touchData[2] = touchRead(LEVERSENSOR_L);
+  touchData[3] = touchRead(LEVERSENSOR_R);
 }
 
 void serialEvent1() {
   FSMheader = Serial1COM.readByte();
-  delayMicroseconds(500);
   switch (FSMheader) {
     case HWRESET:
-    _reboot_Teensyduino_();
+      Serial1.write(OK);
+      delayMicroseconds(5000); // wait a moment to make sure response byte is written
+      WRITE_RESTART(0x5FA0004);
       break;
+      
     case MODULE_INFO: // return module information to bpod
         returnModuleInfo();
         break;
+        
     case START_TRIAL:
       if (Serial1.available() > 6) {
         for (int i = 0; i < 6; i++)  // get number of characters for each variable (6 in total)
@@ -272,6 +272,7 @@ void serialEvent1() {
       leverInc = round(leverSpeed / abs(leverIn)); // time between steps to move at requested leverspeed.
       Serial1.write(OK);
       break;
+      
     case ADJUST_SPOUTES:
       if (Serial1.available() > 1) {
         spoutMoves = true;
@@ -539,24 +540,19 @@ void loop() {
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // get data from touch pins
-  if (quickSmooth){
-      touchData[0] = (touchData[0] * smoothCnt + analogRead(SPOUTSENSOR_L)) / (smoothCnt+1);
-      touchData[1] = (touchData[1] * smoothCnt + analogRead(SPOUTSENSOR_R)) / (smoothCnt+1);
-      //touchData[2] = (touchData[2] * smoothCnt + analogRead(LEVERSENSOR_L)) / (smoothCnt+1);
-      //touchData[3] = (touchData[3] * smoothCnt + analogRead(LEVERSENSOR_R)) / (smoothCnt+1);
-  }
-  else {
-      touchData[0] = analogRead(SPOUTSENSOR_L);
-      touchData[1] = analogRead(SPOUTSENSOR_R);
-      //touchData[2] = analogRead(LEVERSENSOR_L);
-      //touchData[3] = analogRead(LEVERSENSOR_R);
-  }
-  
-  // runningAvg[0] = runningAvg[0] + ((touchData[0] - runningAvg[0]) / avgWeight);
-  // runningAvg[1] = runningAvg[1] + ((touchData[1] - runningAvg[1]) / avgWeight);
+  touchData[0] = (touchData[0] * 1 + touchRead(SPOUTSENSOR_L)) / 2;
+  touchData[1] = (touchData[1] * 1 + touchRead(SPOUTSENSOR_R)) / 2;
+  touchData[2] = (touchData[2] * 1 + touchRead(LEVERSENSOR_L)) / 2;
+  touchData[3] = (touchData[3] * 1 + touchRead(LEVERSENSOR_R)) / 2;
 
-  // touchData[0] = touchData[0] - runningAvg[0];
-  // touchData[1] = touchData[1] - runningAvg[1];
+//  runningAvg[0] = runningAvg[0] + ((touchData[0] - runningAvg[0]) / avgWeight);
+//  runningAvg[1] = runningAvg[1] + ((touchData[1] - runningAvg[1]) / avgWeight);
+
+  touchData[0] = touchData[0] - runningAvg[0];
+  touchData[1] = touchData[1] - runningAvg[1];
+
+  touchData[0] = touchData[0];
+  touchData[1] = touchData[1];
    
   // recompute estimates for mean and standard deviation in each touch line and updates thresholds accordingly
   if (touchAdjust) {
@@ -580,13 +576,11 @@ void loop() {
 
   /////////////////////////////////////////////////////////////////////////////////////////////
   // check touch lines and create according output
- // if (!touchAdjust & !spoutMoves & !leverMoves) {
-  if (!touchAdjust) {
+  if (!touchAdjust & !spoutMoves & !leverMoves) {
     if (touchData[0] > (meanTouchVals[0] + (stdTouchVals[0]*touchThresh))) { // signal above 'stdTouchVals' standard deviations indicate lick event. only when spouts dont move.
       spoutClocker_L = millis(); //update time when spout was last touched
       if (!spoutTouch_L) {
         Serial1.write(LEFT_SPOUT_TOUCH); // send a byte to bpod if this is an onset event
-        checkFlag = true;
       }
       spoutTouch_L = true;
     }
@@ -978,6 +972,7 @@ float moveRightSpout(float current, float target, int pulseDur) {
 
   }
   current = AdjustServo(current, target, 1); // adjust current servo position
+
   return current;
 }
 
