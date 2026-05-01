@@ -32,28 +32,13 @@ for iTrials = 1 : maxTrials
     
     % check the pause button
     if BpodSystem.Status.PuffyPenguinPause
-        disp('Spatial Sparrow paused');
-
-        % enable water buttons
-        BpodSystem.GUIHandles.PuffyPenguin.GiveLeftWater.Enable = 'on';
-        BpodSystem.GUIHandles.PuffyPenguin.GiveRightWater.Enable = 'on';
-        BpodSystem.GUIHandles.PuffyPenguin.GiveBothWater.Enable = 'on';
-        
+        disp('Spatial Sparrow paused')
         while BpodSystem.Status.PuffyPenguinPause 
             drawnow; pause(0.03); 
             if ~BpodSystem.Status.BeingUsed || BpodSystem.Status.PuffyPenguinExit
-                % disable water buttons
-                BpodSystem.GUIHandles.PuffyPenguin.GiveLeftWater.Enable = 'off';
-                BpodSystem.GUIHandles.PuffyPenguin.GiveRightWater.Enable = 'off';
-                BpodSystem.GUIHandles.PuffyPenguin.GiveBothWater.Enable = 'off';
                 break
             end
         end
-    else
-        % disable water buttons
-        BpodSystem.GUIHandles.PuffyPenguin.GiveLeftWater.Enable = 'off';
-        BpodSystem.GUIHandles.PuffyPenguin.GiveRightWater.Enable = 'off';
-        BpodSystem.GUIHandles.PuffyPenguin.GiveBothWater.Enable = 'off';
     end
     
     %check bpod pause button

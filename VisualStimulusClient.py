@@ -68,10 +68,9 @@ class MyClient:
 
 
 if __name__ == '__main__':
-    root_path = r'F:\Bpod Local\visualStim'
-    left_monitor_id = 2
-    middle_monitor_id = 0  # Only gray
-    right_monitor_id = 3
+    root_path = r'E:\Bpod Local\visualStim'
+    left_monitor_id = 1
+    right_monitor_id = 2
 
     # start TCP-client
     client = MyClient()
@@ -82,9 +81,8 @@ if __name__ == '__main__':
     black_path_l = path.join(root_path, 'Stimulus_frames', 'black_l.png')
 
     # open the windows
-    vis_stim_l = VisualStimulus(screen=left_monitor_id, screen_size=(2048, 1536), wait_blanking=False, fullscr=True)
-    vis_stim_m = VisualStimulus(screen=middle_monitor_id, screen_size=(2048, 1536), wait_blanking=False, fullscr=True)
-    vis_stim_r = VisualStimulus(screen=right_monitor_id, screen_size=(2048, 1536), wait_blanking=True, fullscr=True)
+    vis_stim_l = VisualStimulus(screen=left_monitor_id, screen_size=(1280, 720), wait_blanking=False, fullscr=True)
+    vis_stim_r = VisualStimulus(screen=right_monitor_id, screen_size=(1280, 720), wait_blanking=True, fullscr=True)
 
     vis_stim_l.change_image(gray_path_l)
     vis_stim_r.change_image(gray_path_r)

@@ -183,20 +183,19 @@ end
 
 %% check for rotary encoder module
 clear R; R = [];
-checkOut = PuffyPenguin_checkPort(S.rotaryEncoderPort, 'rotaryEncoder');
-
-if checkOut
-    R = RotaryEncoderModule(S.rotaryEncoderPort);
+try
+    R = RotaryEncoderModule(S.rotaryEncoderPort); %check if rotary encoder module com port is correct
     fprintf('Rotary encoder module found on port %s\n.', S.rotaryEncoderPort)
-else
+catch
+    % check for analog module by finding a serial device that can create a waveplayer object
+    clear R; R = [];
     Ports = FindSerialPorts; % get available serial com ports
     Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.wavePort)); %don't use output module port
     Ports = Ports(~strcmpi(Ports, BpodSystem.ProtocolSettings.analogInPort)); %don't use input module port
     for i = 1 : length(Ports)
-        checkOut = PuffyPenguin_checkPort(Ports{i}, 'rotaryEncoder');
-        if checkOut
-            BpodSystem.ProtocolSettings.rotaryEncoderPort = Ports{i};
+        try
             R = RotaryEncoderModule(Ports{i});
+            BpodSystem.ProtocolSettings.rotaryEncoderPort = Ports{i};
             fprintf('Rotary encoder module found on port %s\n.', Ports{i})
             break
         end
@@ -241,6 +240,8 @@ maxTrials = 5000;
 TrialSidesList = double(rand(1,maxTrials) < S.ProbRight); % ONE MEANS RIGHT TRIAL
 PrevProbRight = S.ProbRight;
 BpodSystem.Data.TrialStartTime = [];
+BpodSystem.Data.SessionDur = 0;
+BpodSystem.Data.givenReward = 0;
 [dataPath, bhvFile] = fileparts(BpodSystem.Path.CurrentDataFile);
 tmp = strsplit(bhvFile,'_');
 dataPath = fullfile(dataPath,[tmp{end-1} '_' tmp{end}]);
@@ -408,3 +409,5 @@ LastBias = 1; %last trial were bias correction was used
 PrevStimLoudness = S.StimLoudness; %variable to check if loudness has changed
 singleSpoutBias = false; %flag to indicate if single spout was presented to counter bias
 
+% check if stimulus server is needed
+PuffyPenguin_backgroundScreen
