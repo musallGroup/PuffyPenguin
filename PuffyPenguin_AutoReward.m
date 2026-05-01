@@ -20,37 +20,37 @@ if S.TrainingMode == 1
 
 end
 
-BpodSystem.ProtocolSettings.SingleSpoutTrial = SingleSpout;
+%% Check for side bias using rolling window of recent self-performed trials
+% If the animal consistently responds to one side, present a single spout
+% on the ignored (correct) side to remind it of the other option.
+biasBiasWindow = 10;          % number of recent self-performed, responded trials to assess
+biasTriggerThreshold = 0.80;  % fraction to one side required to flag a bias
+biasTriggerProb = 0.75;       % probability of triggering a single spout on any qualifying trial
 
-%% TODO: SEE IF THIS IS USEFUL WHEN THINGS ARE WORKING
-%         % check for additional single spout if animal keeps making mistakes on the same side
-%         if singleSpoutBias
-%             seqLength = 1;
-%         else
-%             seqLength = S.biasSeqLength*2;
-%         end
-%         singleSpoutBias = false;
-%         
-%         if iTrials > seqLength && S.ProbRight == 0.5
-%             %provide single spout if animal is strictly going to one side
-%             if length(unique(BpodSystem.Data.ResponseSide(iTrials-seqLength : iTrials - 1))) == 1 %animal always goes to the same side
-%                 if (TrialSidesList(iTrials)+1) ~= unique(BpodSystem.Data.ResponseSide(iTrials-seqLength : iTrials - 1)) %current trial is non-preferred side
-%                     if rand > 0.75
-%                         SingleSpout = true;
-%                         singleSpoutBias = true;
-%                     end
-%                 end
-%             end
-%             
-%             %provide autoreward if animal does not touch lever anymore
-%             if sum(ismember(OutcomeRecord(iTrials-seqLength:iTrials-1),4)) == 3
-%                 if rand > 0.5
-%                     GiveReward = true;
-%                 end
-%             end
-%         end
-%         
-%         if SingleSpout && ~isnan(optoSide) %dont give optogenetic stimulus in single spout trials
-%             optoType = NaN; optoSide = NaN;
-%             Signal(7:8,:) = zeros(2,size(Signal,2));
-%         end
+singleSpoutBias = false; % reset flag for this trial
+
+if iTrials > biasBiasWindow && ~SingleSpout
+    % get indices of recent self-performed trials where the animal made a choice
+    recentIdx = find(AssistRecord(1:iTrials-1) & ~BpodSystem.Data.DidNotChoose(1:iTrials-1));
+    recentIdx = recentIdx(max(1, end - biasBiasWindow + 1) : end);
+
+    if length(recentIdx) >= biasBiasWindow
+        choiceFrac = sum(BpodSystem.Data.ResponseSide(recentIdx) == 1) / biasBiasWindow;
+
+        if choiceFrac > biasTriggerThreshold && correctSide == 1
+            % animal is ignoring left; current trial is a left trial -> remind it
+            if rand < biasTriggerProb
+                SingleSpout = true;
+                singleSpoutBias = true;
+            end
+        elseif choiceFrac < (1 - biasTriggerThreshold) && correctSide == 2
+            % animal is ignoring right; current trial is a right trial -> remind it
+            if rand < biasTriggerProb
+                SingleSpout = true;
+                singleSpoutBias = true;
+            end
+        end
+    end
+end
+
+BpodSystem.ProtocolSettings.SingleSpoutTrial = SingleSpout;
